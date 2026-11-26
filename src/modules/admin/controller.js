@@ -77,3 +77,13 @@ export async function listSettings(req, res) {
 export async function updateSetting(req, res) {
   res.json(await service.updateSetting(actorFromReq(req), req.input.params.key, req.input.body));
 }
+
+// GET /api/admin/jobs/runs
+export async function listJobRuns(req, res) {
+  res.json(await service.listJobRuns(req.input.query));
+}
+
+// POST /api/admin/jobs/:job/run
+export async function runJobNow(req, res) {
+  res.json(await service.runJobNow(actorFromReq(req), req.input.params.job));
+}

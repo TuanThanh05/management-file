@@ -29,7 +29,7 @@ Lý do (căn cứ từ `records_retention.sql`):
 | Xác thực | jsonwebtoken (JWT có `jti` = `login_sessions.id`) + bcrypt (cost 12) |
 | Tải file | multer (lưu tạm trong RAM) + file-type (nhận định dạng theo magic bytes) |
 | Mã hóa file | `node:crypto` AES-256-GCM, mã hóa phong bì (khóa chủ đặt trong `.env`) |
-| Tác vụ định kỳ | node-cron + `GET_LOCK` của MySQL |
+| Tác vụ định kỳ | Bộ hẹn giờ của Node.js (kiểm tra mỗi phút theo `JOB_RUN_TIME`) + `GET_LOCK` của MySQL, ghi `job_runs` |
 | Biên bản PDF | pdfmake (hỗ trợ phông tiếng Việt) – theo bảng nền tảng kỹ thuật của báo cáo |
 | Xuất Excel | exceljs |
 | Bảo mật HTTP | helmet, cors, express-rate-limit |
@@ -105,7 +105,7 @@ P0 = bắt buộc để demo luồng chính. P1 = làm nếu còn thời gian.
 | 4 | Catalog + Labels (đề xuất → duyệt) | Loại tài liệu có nhãn đang hiệu lực | [x] 26/11 |
 | 5 | Records + Files (mã hóa, giải mã) | Tạo hồ sơ, tải file lên rồi tải về đúng sha256 | [x] 26/11 |
 | 6 | Gửi/duyệt lưu trữ, tính hạn, tra cứu, đánh dấu hết hiệu lực | Hồ sơ ARCHIVED có `expiry_date` | [x] 26/11 |
-| 7 | Job quét hạn, notifications, extensions, holds | Hồ sơ test (hạn lùi về quá khứ) chuyển sang EXPIRED | [ ] |
+| 7 | Job quét hạn, notifications, extensions, holds | Hồ sơ test (hạn lùi về quá khứ) chuyển sang EXPIRED | [x] 26/11 |
 | 8 | Đợt hủy và duyệt 2 cấp | Đợt đi hết Nháp → Cấp 1 → Cấp 2 → APPROVED | [ ] |
 | 9 | Job thực hiện hủy, biên bản PDF, audit verify | Chạy trọn luồng hủy, kiểm tra nhật ký ra INTACT | [ ] |
 | 10 | Reports, export, backup, test end-to-end, tài liệu API | Postman collection hoặc Swagger cho frontend | [ ] |
@@ -151,6 +151,11 @@ Những chỗ code đã khác hoặc chi tiết hơn báo cáo; nhóm sửa báo
 | 11 | Chương 2 – 5.2 chức năng 5, 5.3 chức năng 3 (Duyệt lưu trữ) | Ghi rõ: ai duyệt được xét **tại thời điểm duyệt** – người tạo đang là Trưởng phòng thì Cán bộ lưu trữ duyệt, còn lại Trưởng phòng của phòng duyệt; người duyệt khác người tạo | Ngày 6 | [ ] |
 | 12 | Chương 2 – 5.1 chức năng 11 (Tra cứu, BM07) | Ghi rõ: từ khóa tìm kiểu "chứa chuỗi" trên mã và tiêu đề; 20 dòng/trang; sắp xếp theo ngày tạo, ngày hết hạn, mã | Ngày 6 | [ ] |
 | 13 | Chương 2 – 5.2 chức năng 8 (Đánh dấu hết hiệu lực, BM11) | Thêm: nhãn không tính theo sự kiện thì ngày kết thúc sự kiện là tùy chọn, ngày hết hạn giữ nguyên; nội dung sự kiện đã khai báo thì giữ nguyên | Ngày 6 | [ ] |
+| 14 | Chương 3 – bảng use case 1.4, UC23 (Lập đề xuất gia hạn) | Sửa tác nhân "Cán bộ lưu trữ" thành **Nhân viên** cho khớp 5.1 CN14, 5.3 CN12 ("Cán bộ lưu trữ không lập hay sửa đề xuất gia hạn") và QT3.2; UC23 không còn là «extend» của UC21 | Ngày 7 | [ ] |
+| 15 | Chương 2 – 5.2 chức năng 11 (Từ chối gia hạn) và QT3.2 bước 8 | Thống nhất: từ chối gia hạn thì báo lý do cho **cả Nhân viên đề xuất và Cán bộ lưu trữ** (hai chỗ đang ghi mỗi chỗ một người) | Ngày 7 | [ ] |
+| 16 | Chương 1 – bảng nền tảng kỹ thuật (nếu có ghi node-cron) | Sửa "Tác vụ định kỳ": bộ hẹn giờ của Node.js kiểm tra mỗi phút theo tham số `JOB_RUN_TIME` + khóa `GET_LOCK` của MySQL | Ngày 7 | [ ] |
+| 17 | Chương 2 – QT3.1 nhánh B | Thêm: máy chủ tắt qua giờ quét thì khi bật lại hệ thống tự chạy bù trong ngày; Quản trị hệ thống chạy tay được tác vụ; mỗi lần chạy ghi lịch sử (`job_runs`) | Ngày 7 | [ ] |
+| 18 | Chương 2 – 5.1 chức năng 14 (Lập đề xuất gia hạn) | Thêm: phòng chưa có Trưởng phòng thì thông báo chờ duyệt gửi Quản trị hệ thống (giống ngày 6) | Ngày 7 | [ ] |
 
 ---
 
@@ -172,3 +177,4 @@ Những chỗ code đã khác hoặc chi tiết hơn báo cáo; nhóm sửa báo
 | 26/11/2026 | Thêm mục 7 "Việc cần cập nhật lại trong báo cáo" | Nhóm sẽ sửa báo cáo sau; ghi lại để không quên |
 | 26/11/2026 | Xong ngày 5. Đuôi file không khớp nội dung thì từ chối; README cảnh báo sao lưu khóa chủ; `MASTER_KEY_BASE64` bắt buộc khi khởi động; bản mã gắn AAD = tên lưu trữ (chống tráo file); nhật ký hồ sơ không ghi tiêu đề/mô tả (có thể chứa dữ liệu cá nhân, mà nhật ký không sửa được); viết lại `.env.example` đủ biến | Nhóm chốt; bảo vệ dữ liệu cá nhân theo yêu cầu 21 (Luật BVDLCN 2025) |
 | 26/11/2026 | Xong ngày 6. Giữ phương án B: hồ sơ do Trưởng phòng tạo do Cán bộ lưu trữ duyệt (đúng 5.3 CN3); vai trò người duyệt xét tại thời điểm duyệt; phòng chưa có Trưởng phòng vẫn gửi được và báo Quản trị hệ thống; tra cứu dùng LIKE (thoát `%`, `_`) trên mã và tiêu đề | Nhóm chốt |
+| 26/11/2026 | Xong ngày 7. Tác vụ định kỳ dùng bộ hẹn giờ của Node.js (mỗi phút, chạy bù khi máy tắt qua giờ) thay cho node-cron; gia hạn do Nhân viên lập (theo 5.1 CN14 và quyền trong CSDL); từ chối gia hạn báo cả Nhân viên đề xuất và Cán bộ lưu trữ; hàng chờ duyệt của Trưởng phòng có thêm đề xuất gia hạn; phong tỏa hồ sơ đang trong đợt hủy → tự rút khỏi đợt **làm ở ngày 8** (khi có đợt hủy) | Nhóm chốt; bớt một thư viện; khớp báo cáo |

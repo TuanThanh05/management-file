@@ -138,18 +138,26 @@ export async function rejectRecord(actor, user, code, { reason }) {
   return loadRecordDetail(pool, code);
 }
 
-// Hàng chờ duyệt của người đang đăng nhập (5.2 CN4)
+// Hàng chờ duyệt của người đang đăng nhập (5.2 CN4): yêu cầu lưu trữ; Trưởng phòng thêm đề xuất gia hạn của phòng (đợt hủy: ngày 8)
 export async function listApprovals(user) {
+  const isHead = user.roles.includes('DEPARTMENT_HEAD');
   const rows = await repo.listPendingApprovals(pool, {
-    headOfDepartmentId: user.roles.includes('DEPARTMENT_HEAD') ? user.departmentId : null,
+    headOfDepartmentId: isHead ? user.departmentId : null,
     asRecordsOfficer: user.roles.includes('RECORDS_OFFICER'),
     excludeUserId: user.id,
   });
-  return rows.map((r) => ({
-    code: r.code, title: r.title, documentDate: r.document_date, submittedAt: r.submitted_at, waitingDays: Number(r.waiting_days),
-    documentType: { code: r.type_code, name: r.type_name }, department: r.department_code,
-    createdBy: { email: r.created_by_email, fullName: r.created_by_name },
-  }));
+  const ext = isHead ? await repo.listPendingExtensions(pool, user.departmentId, user.id) : [];
+  return {
+    items: rows.map((r) => ({
+      code: r.code, title: r.title, documentDate: r.document_date, submittedAt: r.submitted_at, waitingDays: Number(r.waiting_days),
+      documentType: { code: r.type_code, name: r.type_name }, department: r.department_code,
+      createdBy: { email: r.created_by_email, fullName: r.created_by_name },
+    })),
+    extensions: ext.map((e) => ({
+      code: e.code, recordCode: e.record_code, oldExpiryDate: e.old_expiry_date, newExpiryDate: e.new_expiry_date,
+      requestedAt: e.requested_at, waitingDays: Number(e.waiting_days), requestedBy: { email: e.requested_by_email, fullName: e.requested_by_name },
+    })),
+  };
 }
 
 // ---------- Đánh dấu hết hiệu lực (5.2 CN8, BM11) ----------

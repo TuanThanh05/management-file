@@ -45,6 +45,12 @@ Yêu cầu: Node.js ≥ 22, MySQL 8.0.22+ (khuyến nghị 8.4 LTS).
 - Không commit, không gửi khóa qua chat. Mỗi máy dev dùng khóa riêng; file mã hóa ở máy này không mở được ở máy khác.
 - Đổi khóa định kỳ (key rotation) nằm ngoài phạm vi đồ án.
 
+## Tác vụ định kỳ
+
+- `npm start` bật bộ hẹn giờ: mỗi phút kiểm tra, đã qua giờ `JOB_RUN_TIME` (giờ VN, sửa trong tham số hệ thống) mà hôm nay chưa chạy thì chạy quét hạn. Máy chủ tắt qua giờ chạy thì bật lên sẽ chạy bù.
+- Chạy nhiều tiến trình cũng không bị chạy trùng (khóa `GET_LOCK` của MySQL). Mỗi lần chạy ghi vào `job_runs`.
+- Test nhanh: Quản trị viên gọi `POST /api/admin/jobs/expiry-scan/run`, xem kết quả ở `GET /api/admin/jobs/runs`.
+
 ## Quy ước code
 
 - **Mọi thao tác ghi đều đi qua `withTx(actor, fn)`** (`src/core/tx.js`) và gọi `tx.audit(...)` trong cùng transaction.
@@ -83,7 +89,7 @@ src/
   core/        tx.js, errors.js, codes.js, time.js, logger.js, settings.js, password.js, session.js, notify.js, dbMessages.js, storage.js
   middlewares/ authenticate, authorize, validate, originCheck, rateLimit, upload
   modules/     mỗi module: routes, controller, service, repo, schema
-  jobs/        tác vụ định kỳ
+  jobs/        runner.js (khóa + job_runs), scheduler.js (hẹn giờ mỗi phút), expiryScan.js (quét hạn)
   crypto/      envelope.js: mã hóa phong bì file (AES-256-GCM, khóa riêng từng file)
 tests/         vitest + supertest, chạy trên CSDL thật (setup/ kiểm tra kết nối, helpers/ tạo dữ liệu test, fixtures/ file mẫu; kho file test ở storage-test/)
 ```

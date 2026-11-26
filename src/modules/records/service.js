@@ -27,7 +27,7 @@ const FORMATS = {
   jpg: { format: 'JPG', exts: ['.jpg', '.jpeg'], mime: 'image/jpeg', inline: true },
   png: { format: 'PNG', exts: ['.png'], mime: 'image/png', inline: true },
 };
-const BY_FORMAT = Object.fromEntries(Object.values(FORMATS).map((f) => [f.format, f]));
+export const BY_FORMAT = Object.fromEntries(Object.values(FORMATS).map((f) => [f.format, f]));
 
 // Hồ sơ có nằm trong phạm vi dữ liệu của người dùng không (OWN / DEPARTMENT / ALL)
 function inScope(scope, user, record) {
@@ -224,7 +224,7 @@ export async function loadRecordDetail(conn, code) {
 // ---------- File (5.1 chức năng 5, 6, 13) ----------
 
 // Sửa tên file do multipart gửi ở dạng latin1, bỏ đường dẫn và ký tự điều khiển
-function cleanFileName(name) {
+export function cleanFileName(name) {
   let n = name ?? 'file';
   const asUtf8 = Buffer.from(n, 'latin1').toString('utf8');
   if (/[\u0080-ÿ]/.test(n) && !asUtf8.includes('�')) n = asUtf8;
@@ -233,7 +233,7 @@ function cleanFileName(name) {
 }
 
 // Nhận diện định dạng theo nội dung (magic bytes) và đối chiếu đuôi tên file
-async function detectFormat(buffer, fileName) {
+export async function detectFormat(buffer, fileName) {
   if (!buffer?.length) throw AppError.unprocessable('File rỗng', [{ field: 'file', message: 'File không có nội dung' }]);
   const ft = await fileTypeFromBuffer(buffer);
   const f = ft && FORMATS[ft.ext];
