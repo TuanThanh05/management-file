@@ -3,6 +3,7 @@ import { getSettings } from '../core/settings.js';
 import { todayVN, timeVN } from '../core/time.js';
 import { logger } from '../core/logger.js';
 import { runExpiryScan } from './expiryScan.js';
+import { runDisposalExecution, hasDueBatches } from './disposalExecution.js';
 
 const JOBS = { EXPIRY_SCAN: runExpiryScan };
 
@@ -14,8 +15,17 @@ async function ranToday(jobName) {
   return Number(row.n) > 0;
 }
 
-// Mỗi phút: đã qua giờ JOB_RUN_TIME mà hôm nay chưa chạy thì chạy (máy tắt qua giờ chạy thì chạy bù khi bật lại)
+// Lần chạy thực hiện hủy gần đây (15 phút) có lỗi không: có thì chờ, tránh thử lại liên tục mỗi phút
+async function failedRecently() {
+  const [[row]] = await pool.query(
+    `SELECT COUNT(*) AS n FROM job_runs WHERE job_name = 'DISPOSAL_EXECUTION' AND result IN ('PARTIAL','FAILED')
+       AND started_at >= UTC_TIMESTAMP(3) - INTERVAL 15 MINUTE`);
+  return Number(row.n) > 0;
+}
+
+// Mỗi phút: có đợt đến giờ hủy thì thực hiện hủy; đã qua giờ JOB_RUN_TIME mà hôm nay chưa quét hạn thì quét (chạy bù khi máy bật lại)
 export async function tick(now = new Date()) {
+  if (await hasDueBatches() && !(await failedRecently())) await runDisposalExecution();
   const { JOB_RUN_TIME } = await getSettings(pool, ['JOB_RUN_TIME']);
   if (timeVN(now) < JOB_RUN_TIME) return;
   for (const [name, run] of Object.entries(JOBS)) {

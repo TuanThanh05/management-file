@@ -6,6 +6,7 @@ import { hashPassword, generateTempPassword } from '../../core/password.js';
 import { revokeAllSessions } from '../auth/repo.js';
 import * as repo from './repo.js';
 import { runExpiryScan } from '../../jobs/expiryScan.js';
+import { runDisposalExecution } from '../../jobs/disposalExecution.js';
 
 const ROLE_NAMES = {
   EMPLOYEE: 'Nhân viên', DEPARTMENT_HEAD: 'Trưởng phòng', RECORDS_OFFICER: 'Cán bộ lưu trữ',
@@ -311,7 +312,7 @@ export async function updateSetting(actor, key, { value }) {
 
 // ---------- Tác vụ định kỳ (5.5, theo dõi job_runs) ----------
 
-const RUNNERS = { 'expiry-scan': runExpiryScan };
+const RUNNERS = { 'expiry-scan': runExpiryScan, 'disposal-execution': runDisposalExecution };
 
 // Lịch sử chạy tác vụ, mới nhất trước, 20 dòng mỗi trang
 export async function listJobRuns({ jobName, page }) {

@@ -5,7 +5,7 @@ import { validate } from '../../middlewares/validate.js';
 import * as s from './schema.js';
 import * as ctrl from './controller.js';
 
-// Nhóm API /api/disposals: lập đợt hủy (Cán bộ lưu trữ), duyệt cấp 1 (Trưởng phòng), cấp 2 và thu hồi (Giám đốc) – QT4.1
+// Nhóm API /api/disposals: lập đợt hủy (Cán bộ lưu trữ), duyệt cấp 1 (Trưởng phòng), cấp 2 và thu hồi (Giám đốc), tải biên bản – QT4.1, QT4.2
 export const disposalRoutes = Router();
 disposalRoutes.use(authenticate());
 
@@ -27,3 +27,4 @@ disposalRoutes.post('/:code/return-level-1', level1, validate({ ...p, body: s.re
 disposalRoutes.post('/:code/approve-level-2', level2, validate({ ...p, body: s.approveSchema }), ctrl.approveLevel2);
 disposalRoutes.post('/:code/return-level-2', level2, validate({ ...p, body: s.reasonSchema }), ctrl.returnLevel2);
 disposalRoutes.post('/:code/revoke', authorize('DISPOSAL.REVOKE'), validate({ ...p, body: s.revokeSchema }), ctrl.revokeBatch);
+disposalRoutes.get('/:code/certificate', authorize('CERTIFICATE.DOWNLOAD'), validate(p), ctrl.downloadCertificate);

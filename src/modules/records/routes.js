@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { authenticate } from '../../middlewares/authenticate.js';
-import { authorize } from '../../middlewares/authorize.js';
+import { authorize, authorizeAny } from '../../middlewares/authorize.js';
 import { validate } from '../../middlewares/validate.js';
 import { uploadSingle } from '../../middlewares/upload.js';
 import * as s from './schema.js';
@@ -18,7 +18,7 @@ const previewQuery = z.object({
 });
 
 recordRoutes.get('/', authorize('RECORD.VIEW'), validate({ query: s.searchQuery }), ctrl.searchRecords);
-recordRoutes.get('/approvals', authorize('RECORD.APPROVE_ARCHIVE'), ctrl.listApprovals);
+recordRoutes.get('/approvals', authorizeAny('RECORD.APPROVE_ARCHIVE', 'DISPOSAL.APPROVE_LEVEL_2'), ctrl.listApprovals);
 recordRoutes.get('/expiry-preview', authorize('RECORD.CREATE'), validate({ query: previewQuery }), ctrl.previewExpiry);
 recordRoutes.post('/', authorize('RECORD.CREATE'), validate({ body: s.createRecordSchema }), ctrl.createRecord);
 recordRoutes.get('/:code', authorize('RECORD.VIEW'), validate({ params: s.codeParam }), ctrl.getRecord);

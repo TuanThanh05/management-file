@@ -1,4 +1,5 @@
 import * as service from './service.js';
+import { downloadCertificate as download } from '../certificates/service.js';
 import { actorFromReq } from '../../core/tx.js';
 
 // Gọi service với (actor, user, code, body) và trả JSON
@@ -32,3 +33,16 @@ export const returnLevel1 = action(service.returnLevel1);
 export const approveLevel2 = action(service.approveLevel2);
 export const returnLevel2 = action(service.returnLevel2);
 export const revokeBatch = action(service.revokeBatch);
+
+// GET /api/disposals/:code/certificate
+export async function downloadCertificate(req, res) {
+  const out = await download(actorFromReq(req), req.input.params.code);
+  res.set({
+    'Content-Type': 'application/pdf',
+    'Content-Length': out.buffer.length,
+    'Content-Disposition': `attachment; filename="${out.fileName}"`,
+    'Cache-Control': 'no-store',
+    'X-Content-SHA256': out.sha256,
+  });
+  res.end(out.buffer);
+}

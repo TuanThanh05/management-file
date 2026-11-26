@@ -431,3 +431,26 @@ GET {{base}}/disposals?status=PENDING_LEVEL_2
 
 ### Chi tiết đợt: danh mục, hồ sơ bị loại / rút, lịch sử xét duyệt
 GET {{base}}/disposals/DH-KT-2026-001
+
+### ---------- Ngày 9: thực hiện hủy, biên bản, nhật ký ----------
+
+### Quản trị viên chạy tay tác vụ thực hiện hủy (bình thường tự chạy khi đến giờ hẹn)
+POST {{base}}/admin/jobs/disposal-execution/run
+
+### Giám đốc: hàng chờ (labelProposals, disposalsLevel2, disposalsScheduled kèm minutesLeft)
+GET {{base}}/records/approvals
+
+### Cán bộ lưu trữ: tải biên bản hủy (đợt Hoàn tất); header X-Content-SHA256 = mã băm file
+GET {{base}}/disposals/DH-KT-2026-001/certificate
+
+### Giám đốc / Quản trị: tra cứu nhật ký (BM18) – thời điểm ISO 8601, actions cách nhau dấu phẩy
+GET {{base}}/audit/logs?from=2026-11-20T00:00:00%2B07:00&to=2026-11-26T23:59:59%2B07:00&actions=RECORD_DISPOSE,DISPOSAL_BATCH_COMPLETE&result=SUCCESS&page=1
+
+### Kiểm tra toàn vẹn toàn bộ nhật ký (BM19); gửi fromSeq/toSeq để kiểm một đoạn
+POST {{base}}/audit/verify
+Content-Type: application/json
+
+{}
+
+### Lịch sử kiểm tra toàn vẹn
+GET {{base}}/audit/checks
