@@ -7,6 +7,7 @@ import { notifyRole, notifyUsers } from '../../core/notify.js';
 import { computeExpiry } from './retention.js';
 import * as repo from './repo.js';
 import { loadRecordDetail } from './service.js';
+import { pendingLevel1 } from '../disposals/repo.js';
 
 const sameId = (a, b) => String(a) === String(b);
 
@@ -138,7 +139,7 @@ export async function rejectRecord(actor, user, code, { reason }) {
   return loadRecordDetail(pool, code);
 }
 
-// Hàng chờ duyệt của người đang đăng nhập (5.2 CN4): yêu cầu lưu trữ; Trưởng phòng thêm đề xuất gia hạn của phòng (đợt hủy: ngày 8)
+// Hàng chờ duyệt của người đang đăng nhập (5.2 CN4): yêu cầu lưu trữ; Trưởng phòng thêm đề xuất gia hạn và đợt hủy chờ cấp 1 của phòng
 export async function listApprovals(user) {
   const isHead = user.roles.includes('DEPARTMENT_HEAD');
   const rows = await repo.listPendingApprovals(pool, {
@@ -147,6 +148,7 @@ export async function listApprovals(user) {
     excludeUserId: user.id,
   });
   const ext = isHead ? await repo.listPendingExtensions(pool, user.departmentId, user.id) : [];
+  const batches = isHead ? await pendingLevel1(pool, user.departmentId, user.id) : [];
   return {
     items: rows.map((r) => ({
       code: r.code, title: r.title, documentDate: r.document_date, submittedAt: r.submitted_at, waitingDays: Number(r.waiting_days),
@@ -156,6 +158,10 @@ export async function listApprovals(user) {
     extensions: ext.map((e) => ({
       code: e.code, recordCode: e.record_code, oldExpiryDate: e.old_expiry_date, newExpiryDate: e.new_expiry_date,
       requestedAt: e.requested_at, waitingDays: Number(e.waiting_days), requestedBy: { email: e.requested_by_email, fullName: e.requested_by_name },
+    })),
+    disposals: batches.map((b) => ({
+      code: b.code, reason: b.reason, recordCount: Number(b.record_count), submittedAt: b.submitted_at,
+      waitingDays: Number(b.waiting_days), createdBy: b.created_by_email,
     })),
   };
 }

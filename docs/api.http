@@ -375,3 +375,59 @@ POST {{base}}/notifications/1/read
 
 ### Đánh dấu tất cả đã đọc
 POST {{base}}/notifications/read-all
+
+### ---------- Ngày 8: đợt hủy và duyệt 2 cấp ----------
+
+### Cán bộ lưu trữ: chọn hồ sơ đủ điều kiện, chưa vào đợt nào
+GET {{base}}/retention/expired?departmentCode=KT&eligibleOnly=true
+
+### Lập đợt hủy (BM05)
+POST {{base}}/disposals
+Content-Type: application/json
+
+{ "departmentCode": "KT", "reason": "Hồ sơ kế toán đã hết thời hạn lưu trữ", "recordCodes": ["HS-KT-2026-000001", "HS-KT-2026-000002"] }
+
+### Sửa đợt Nháp: thêm / bớt hồ sơ, sửa lý do
+PATCH {{base}}/disposals/DH-KT-2026-001
+Content-Type: application/json
+
+{ "removeRecordCodes": ["HS-KT-2026-000002"], "removeReason": "Phòng còn dùng để đối chiếu" }
+
+### Hủy bỏ đợt Nháp
+POST {{base}}/disposals/DH-KT-2026-001/cancel
+Content-Type: application/json
+
+{ "reason": "Lập nhầm phòng ban, làm lại" }
+
+### Gửi đợt duyệt cấp 1
+POST {{base}}/disposals/DH-KT-2026-001/submit
+
+### Trưởng phòng: đề nghị loại một hồ sơ (bỏ đề nghị: /exclusions/remove với recordCode)
+POST {{base}}/disposals/DH-KT-2026-001/exclusions
+Content-Type: application/json
+
+{ "recordCode": "HS-KT-2026-000001", "reason": "Còn cần cho kiểm toán năm sau" }
+
+### Trưởng phòng: đồng ý cấp 1 (trả lại: /return-level-1 với reason)
+POST {{base}}/disposals/DH-KT-2026-001/approve-level-1
+Content-Type: application/json
+
+{ "comment": "Đồng ý" }
+
+### Giám đốc: phê duyệt cấp 2 (trả lại: /return-level-2 với reason)
+POST {{base}}/disposals/DH-KT-2026-001/approve-level-2
+Content-Type: application/json
+
+{ "comment": "Đồng ý hủy" }
+
+### Giám đốc: thu hồi quyết định hủy (BM17)
+POST {{base}}/disposals/DH-KT-2026-001/revoke
+Content-Type: application/json
+
+{ "reason": "Có yêu cầu thanh tra mới", "confirm": true }
+
+### Theo dõi đợt hủy (Giám đốc lọc status=PENDING_LEVEL_2 để xem đợt chờ mình duyệt)
+GET {{base}}/disposals?status=PENDING_LEVEL_2
+
+### Chi tiết đợt: danh mục, hồ sơ bị loại / rút, lịch sử xét duyệt
+GET {{base}}/disposals/DH-KT-2026-001

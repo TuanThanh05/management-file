@@ -18,6 +18,7 @@ import { retentionRoutes } from './modules/retention/routes.js';
 import { extensionRoutes } from './modules/extensions/routes.js';
 import { holdRoutes } from './modules/holds/routes.js';
 import { notificationRoutes } from './modules/notifications/routes.js';
+import { disposalRoutes } from './modules/disposals/routes.js';
 
 // Tạo ứng dụng Express với middleware bảo mật và các nhóm API
 export function createApp() {
@@ -55,6 +56,7 @@ export function createApp() {
   app.use('/api/extensions', extensionRoutes);
   app.use('/api/holds', holdRoutes);
   app.use('/api/notifications', notificationRoutes);
+  app.use('/api/disposals', disposalRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
