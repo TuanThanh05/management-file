@@ -3,7 +3,7 @@ import { auditFailure, actorFromReq } from '../core/tx.js';
 
 // Kiểm tra quyền theo ma trận role_permissions (không có = từ chối); gắn req.scope = OWN | DEPARTMENT | ALL
 export function authorize(permissionCode) {
-  return async (req, res, next) => {
+  return Object.assign(async (req, res, next) => {
     const scope = req.user?.permissions?.[permissionCode];
     if (!scope) {
       await auditFailure(actorFromReq(req), {
@@ -14,12 +14,12 @@ export function authorize(permissionCode) {
     }
     req.scope = scope;
     next();
-  };
+  }, { permissions: [permissionCode] });
 }
 
 // Cho qua nếu có ít nhất một trong các quyền (dùng cho API chỉ đọc danh mục dùng chung)
 export function authorizeAny(...permissionCodes) {
-  return async (req, res, next) => {
+  return Object.assign(async (req, res, next) => {
     const code = permissionCodes.find((c) => req.user?.permissions?.[c]);
     if (!code) {
       await auditFailure(actorFromReq(req), {
@@ -30,7 +30,7 @@ export function authorizeAny(...permissionCodes) {
     }
     req.scope = req.user.permissions[code];
     next();
-  };
+  }, { permissions: permissionCodes });
 }
 
 // Sinh điều kiện WHERE theo phạm vi dữ liệu của người dùng

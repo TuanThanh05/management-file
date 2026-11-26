@@ -34,3 +34,7 @@ adminRoutes.patch('/settings/:key', settings, validate({ params: s.keyParam, bod
 const jobs = authorize('ADMIN.JOBS');
 adminRoutes.get('/jobs/runs', jobs, validate({ query: s.jobRunsQuery }), ctrl.listJobRuns);
 adminRoutes.post('/jobs/:job/run', jobs, validate({ params: s.jobParam }), ctrl.runJobNow);
+
+const backups = authorize('ADMIN.BACKUP');
+adminRoutes.get('/backups', backups, ctrl.listBackups);
+adminRoutes.post('/backups/run', backups, ctrl.runBackupNow);

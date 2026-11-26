@@ -5,7 +5,7 @@ import { loadAuthContext, touchSession } from '../modules/auth/repo.js';
 
 // Xác thực từ cookie phiên: JWT hợp lệ, phiên chưa thu hồi/chưa hết hạn, tài khoản hoạt động; gắn req.user
 export function authenticate({ allowMustChange = false } = {}) {
-  return async (req, res, next) => {
+  return Object.assign(async (req, res, next) => {
     const claims = verifySessionToken(req.cookies?.[SESSION_COOKIE] ?? '');
     const ctx = claims && (await loadAuthContext(claims.userId, claims.sessionId));
     if (!ctx) {
@@ -32,5 +32,5 @@ export function authenticate({ allowMustChange = false } = {}) {
       return next(new AppError(403, 'PASSWORD_CHANGE_REQUIRED', 'Cần đổi mật khẩu trước khi sử dụng hệ thống'));
     }
     next();
-  };
+  }, { auth: true });
 }

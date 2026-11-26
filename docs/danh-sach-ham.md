@@ -284,9 +284,21 @@ Cập nhật mỗi khi thêm hoặc sửa hàm. Quy ước chú thích trong cod
 | `listLogs` | `service.js` | Tra cứu nhật ký chỉ đọc, mặc định 7 ngày, 50 dòng/trang; ghi nhật ký lượt xem | TuanThanh05 | 26/11/2026 |
 | `verifyChain` | `service.js` | Kiểm tra chuỗi băm qua `sp_verify_audit_chain`, lưu `integrity_checks`, cảnh báo khi sai lệch | TuanThanh05 | 26/11/2026 |
 | `listChecks` | `service.js` | Lịch sử các lần kiểm tra toàn vẹn | TuanThanh05 | 26/11/2026 |
+| `exportTable`, `sendExport` | `core/exporter.js` | Xuất bảng ra XLSX (exceljs) hoặc PDF (pdfmake); gửi file tải về | TuanThanh05 | 26/11/2026 |
+| `RECORD_STATUS_VN`, `VALIDITY_VN`, `BATCH_STATUS_VN` | `core/labels.js` | Tên tiếng Việt của mã trạng thái | TuanThanh05 | 26/11/2026 |
+| `exportRecords` | `records/service.js` | Xuất kết quả tra cứu hồ sơ (tối đa 5.000 dòng), ghi nhật ký | TuanThanh05 | 26/11/2026 |
+| `exportBatch` | `disposals/service.js` | Xuất danh mục đề nghị hủy BM05 của một đợt | TuanThanh05 | 26/11/2026 |
+| `listBackups` | `admin/service.js` | Danh sách bản sao lưu và lần sao lưu gần nhất | TuanThanh05 | 26/11/2026 |
+| `runBackup`, `listBackups` | `jobs/backup.js` | Sao lưu CSDL + kho file, mã hóa, xóa bản quá hạn; liệt kê bản sao lưu | TuanThanh05 | 26/11/2026 |
+| `dumpDatabase`, `storageEntries`, `archiveStream`, `pruneOld` | `jobs/backup.js` | mysqldump bằng tài khoản chỉ đọc; gom file kho; đóng gói; xóa bản cũ | TuanThanh05 | 26/11/2026 |
+| `buildOpenApi`, `operation`, `collect`, `jsonSchema` | `docs/openapi.js` | Sinh OpenAPI 3.1 từ route Express và schema zod | TuanThanh05 | 26/11/2026 |
+| `mountApiDocs` | `docs/swagger.js` | Mở Swagger UI `/api/docs` khi không chạy production | TuanThanh05 | 26/11/2026 |
+| `summary`, `recordMetrics` | `reports/service.js` | Thống kê BM13 theo phòng hoặc toàn doanh nghiệp | TuanThanh05 | 26/11/2026 |
 
 ## Script – `scripts`
 
 | Tên hàm | File | Làm gì | Người viết | Ngày |
 |---|---|---|---|---|
 | `main()` | `init-admin.js` | Tạo phòng ban, Quản trị viên đầu tiên, ghi nhật ký; in mật khẩu tạm một lần | TuanThanh05 | 26/11/2026 |
+| `main()` | `restore-backup.js` | Kiểm tra toàn vẹn rồi giải mã, bung bản sao lưu ra thư mục trống | TuanThanh05 | 26/11/2026 |
+| `main()` | `export-openapi.js` | Ghi tài liệu OpenAPI ra docs/openapi.json | TuanThanh05 | 26/11/2026 |

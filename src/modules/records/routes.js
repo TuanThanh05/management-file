@@ -18,6 +18,7 @@ const previewQuery = z.object({
 });
 
 recordRoutes.get('/', authorize('RECORD.VIEW'), validate({ query: s.searchQuery }), ctrl.searchRecords);
+recordRoutes.get('/export', authorize('RECORD.EXPORT'), validate({ query: s.exportQuery }), ctrl.exportRecords);
 recordRoutes.get('/approvals', authorizeAny('RECORD.APPROVE_ARCHIVE', 'DISPOSAL.APPROVE_LEVEL_2'), ctrl.listApprovals);
 recordRoutes.get('/expiry-preview', authorize('RECORD.CREATE'), validate({ query: previewQuery }), ctrl.previewExpiry);
 recordRoutes.post('/', authorize('RECORD.CREATE'), validate({ body: s.createRecordSchema }), ctrl.createRecord);

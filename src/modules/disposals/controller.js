@@ -1,5 +1,6 @@
 import * as service from './service.js';
 import { downloadCertificate as download } from '../certificates/service.js';
+import { sendExport } from '../../core/exporter.js';
 import { actorFromReq } from '../../core/tx.js';
 
 // Gọi service với (actor, user, code, body) và trả JSON
@@ -45,4 +46,10 @@ export async function downloadCertificate(req, res) {
     'X-Content-SHA256': out.sha256,
   });
   res.end(out.buffer);
+}
+
+// GET /api/disposals/:code/export?format=xlsx|pdf
+export async function exportBatch(req, res) {
+  const { code } = req.input.params;
+  sendExport(res, await service.exportBatch(actorFromReq(req), req.user, code, req.input.query.format), `danh-muc-${code}`);
 }

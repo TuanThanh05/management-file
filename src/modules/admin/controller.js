@@ -87,3 +87,13 @@ export async function listJobRuns(req, res) {
 export async function runJobNow(req, res) {
   res.json(await service.runJobNow(actorFromReq(req), req.input.params.job));
 }
+
+// GET /api/admin/backups
+export async function listBackups(req, res) {
+  res.json(await service.listBackups());
+}
+
+// POST /api/admin/backups/run
+export async function runBackupNow(req, res) {
+  res.json(await service.runJobNow(actorFromReq(req), 'backup'));
+}
