@@ -3,12 +3,10 @@ import { pingDb, closeDb } from './config/database.js';
 import { logger } from './core/logger.js';
 import { createApp } from './app.js';
 
+// Kiểm tra CSDL rồi mở cổng; dừng êm khi nhận SIGINT/SIGTERM
 async function main() {
-  // Không kết nối được CSDL thì không mở cổng
   await pingDb();
-  const server = createApp().listen(env.PORT, () => {
-    logger.info(`API chạy tại http://localhost:${env.PORT}`);
-  });
+  const server = createApp().listen(env.PORT, () => logger.info(`API chạy tại http://localhost:${env.PORT}`));
 
   const shutdown = (signal) => {
     logger.info(`Nhận ${signal}, đang dừng...`);

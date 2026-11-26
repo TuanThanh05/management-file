@@ -1,0 +1,34 @@
+# API Auth – dùng với REST Client (VS Code) hoặc chép sang Postman.
+# Cookie rr_session được trình duyệt/REST Client tự lưu sau khi đăng nhập.
+# Frontend React: fetch(..., { credentials: 'include' }) hoặc axios withCredentials: true.
+
+@base = http://localhost:3000/api
+
+### Kiểm tra sống
+GET {{base}}/health
+
+### Đăng nhập (BM08) – 200: { mustChangePassword, sessionExpiresAt } + Set-Cookie
+# 401 INVALID_CREDENTIALS: "Tên đăng nhập hoặc mật khẩu không đúng" | 422: sai định dạng | 429: gọi quá nhiều
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@congty.vn",
+  "password": "MAT_KHAU_TAM"
+}
+
+### Thông tin người đang đăng nhập – vai trò, quyền kèm phạm vi, mustChangePassword
+GET {{base}}/auth/me
+
+### Đổi mật khẩu (BM09) – 200 + cookie phiên mới; 422 kèm danh sách lỗi theo trường
+POST {{base}}/auth/change-password
+Content-Type: application/json
+
+{
+  "currentPassword": "MAT_KHAU_TAM",
+  "newPassword": "MatKhauMoi@2026x",
+  "confirmPassword": "MatKhauMoi@2026x"
+}
+
+### Đăng xuất – 204
+POST {{base}}/auth/logout

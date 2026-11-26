@@ -24,6 +24,7 @@ Yêu cầu: Node.js ≥ 22, MySQL 8.0.22+ (khuyến nghị 8.4 LTS).
    ```bash
    npm install
    cp .env.example .env      # sửa DB_PASSWORD nếu đã đổi mật khẩu app_retention
+   node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"   # dán kết quả vào JWT_SECRET
    ```
 4. Tạo quản trị viên đầu tiên (mật khẩu tạm in ra một lần):
    ```bash
@@ -57,19 +58,23 @@ Yêu cầu: Node.js ≥ 22, MySQL 8.0.22+ (khuyến nghị 8.4 LTS).
 - Định dạng lỗi trả về: `{ "error": { "code", "message", "details", "requestId" } }`
 - Cột `DATE` là ngày theo lịch Việt Nam, đọc ra dạng chuỗi `YYYY-MM-DD`. Lấy ngày hôm nay bằng `todayVN()`, không dùng `new Date().toISOString().slice(0,10)`.
 - Không ghi mật khẩu, token, khóa hay nội dung file vào log lẫn vào `details` của nhật ký.
+- API cần đăng nhập: `authenticate()` rồi `authorize('MÃ_QUYỀN')`; lọc dữ liệu theo phạm vi bằng `scopeFilter(req, { departmentColumn, ownerColumn })`.
+- Giá trị 0/1 lấy từ biểu thức SQL có thể về dạng chuỗi `"0"` (do `bigNumberStrings`), không dùng `Boolean(...)` để đổi kiểu.
+- Chú thích: mỗi hàm/khối chỉ một dòng tóm tắt. Thêm hoặc sửa hàm thì cập nhật `docs/danh-sach-ham.md`.
+- Thử API: `docs/api.http`. Frontend gọi API với `credentials: 'include'` (phiên nằm trong cookie httpOnly).
 
 ## Cấu trúc
 
 ```
 database/      records_retention.sql (nguồn chuẩn của CSDL)
-docs/          ke-hoach.md
+docs/          ke-hoach.md, danh-sach-ham.md, api.http
 scripts/       init-admin.js
 src/
   config/      env.js (kiểm tra .env bằng zod), database.js (pool)
-  core/        tx.js, errors.js, codes.js, time.js, logger.js
-  middlewares/ (ngày 2) auth, authorize, validate
+  core/        tx.js, errors.js, codes.js, time.js, logger.js, settings.js, password.js, session.js
+  middlewares/ authenticate, authorize, validate, originCheck, rateLimit
   modules/     mỗi module: routes, controller, service, repo, schema
   jobs/        tác vụ định kỳ
   crypto/      mã hóa phong bì file
-tests/         vitest + supertest, chạy trên CSDL thật
+tests/         vitest + supertest, chạy trên CSDL thật (setup/ kiểm tra kết nối, helpers/ tạo dữ liệu test)
 ```

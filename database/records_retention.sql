@@ -1,6 +1,8 @@
 
 -- 0. XÓA CSDL VÀ TÀI KHOẢN CŨ, TẠO MỚI
 
+-- Client gửi dữ liệu dạng UTF-8 (tránh lỗi font khi nạp bằng client mặc định latin1, ví dụ trong Docker)
+SET NAMES utf8mb4;
 DROP DATABASE IF EXISTS records_retention;
 DROP DATABASE IF EXISTS luu_tru_huy;
 DROP USER IF EXISTS 'app_retention'@'%';
