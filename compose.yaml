@@ -1,21 +1,29 @@
+# MySQL cho máy dev chạy Docker (tùy chọn; máy đã cài MySQL sẵn thì không cần file này).
+#   docker compose up -d
+# Lần đầu (volume còn trống) MySQL tự chạy database/records_retention.sql bằng root.
+# Muốn tạo lại CSDL từ đầu: docker compose down -v && docker compose up -d
 services:
   mysql:
     image: mysql:8.4
-    container_name: mysql
+    container_name: records-retention-mysql
     restart: unless-stopped
-
+    # Quy ước CSDL: mọi DATETIME lưu theo UTC -> máy chủ MySQL chạy giờ UTC.
+    # Không đặt TZ=Asia/Ho_Chi_Minh, vì CURRENT_TIMESTAMP sẽ thành giờ +07.
+    command: ["--default-time-zone=+00:00"]
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      TZ: Asia/Ho_Chi_Minh
-
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Cần đặt MYSQL_ROOT_PASSWORD trong .env}
+      # Không dùng MYSQL_DATABASE / MYSQL_USER: image sẽ cấp ALL PRIVILEGES (kể cả DELETE) cho user đó.
+      # CSDL và tài khoản app_retention (đặc quyền tối thiểu) do script SQL tạo.
     ports:
       - "127.0.0.1:3306:3306"
-
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./database/records_retention.sql:/docker-entrypoint-initdb.d/01_records_retention.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
 
 volumes:
   mysql_data:

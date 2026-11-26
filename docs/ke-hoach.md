@@ -42,7 +42,7 @@ Lý do (căn cứ từ `records_retention.sql`):
 
 ```
 src/
-  config/        env, db pool
+  config/        env.js, database.js (pool)
   core/          tx.js (transaction + ghi audit), errors.js (map SQLSTATE 45000 → 409/422), codes.js
   middlewares/   auth.js (JWT + kiểm tra phiên), authorize.js (permission + scope), validate.js
   modules/
@@ -52,6 +52,8 @@ src/
   jobs/          expiryScan.js, disposalExecution.js, backup.js
   crypto/        envelope.js (encrypt, decrypt, shred)
 scripts/         init-admin.js (tạo quản trị viên đầu tiên)
+database/        records_retention.sql (nguồn chuẩn của CSDL)
+compose.yaml     MySQL bằng Docker (tùy chọn)
 storage/         files/, certificates/  (không commit)
 ```
 
@@ -136,3 +138,4 @@ P0 = bắt buộc để demo luồng chính. P1 = làm nếu còn thời gian.
 | 25/11/2026 | Tạo kế hoạch | Bắt đầu làm backend |
 | 26/11/2026 | Xong ngày 1. Đặt tên package `records-retention-backend`; thêm `src/core/time.js` (`todayVN`) và `logger.js` | Cột DATE là ngày VN, cần hàm dùng chung; log ứng dụng tách khỏi nhật ký nghiệp vụ |
 | 26/11/2026 | Thêm mục 6 "Quy trình Git": làm trên nhánh `feature/...`, merge vào `main` qua Pull Request | Theo quy ước của nhóm |
+| 26/11/2026 | Repo dùng `database/records_retention.sql` và `src/config/database.js`; thêm `compose.yaml` (tùy chọn, MySQL 8.4 chạy giờ UTC, tự nạp script lần đầu) | Theo cách đặt tên của nhóm; một số máy dev dùng Docker |
