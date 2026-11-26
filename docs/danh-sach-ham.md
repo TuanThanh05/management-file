@@ -42,6 +42,10 @@ Cập nhật mỗi khi thêm hoặc sửa hàm. Quy ước chú thích trong cod
 | `notifyUsers(conn, ids, payload)` | `notify.js` | Gửi thông báo cho danh sách người nhận | TuanThanh05 | 26/11/2026 |
 | `notifyRole(conn, roleCode, payload)` | `notify.js` | Gửi thông báo cho mọi tài khoản đang giữ một vai trò | TuanThanh05 | 26/11/2026 |
 | `translateDbMessage(msg)` | `dbMessages.js` | Dịch thông báo lỗi trigger sang tiếng Việt có dấu | TuanThanh05 | 26/11/2026 |
+| `writeBlob`, `readBlob`, `deleteBlob` | `storage.js` | Ghi (file tạm rồi đổi tên, quyền 600), đọc, xóa bản mã trong kho theo tên UUID | TuanThanh05 | 26/11/2026 |
+| `encryptFile(plain, aad)` | `crypto/envelope.js` | Mã hóa file AES-256-GCM bằng khóa riêng, bọc khóa bằng khóa chủ, tính SHA-256 | TuanThanh05 | 26/11/2026 |
+| `decryptFile(input)` | `crypto/envelope.js` | Mở khóa, giải mã, kiểm tra thẻ GCM và SHA-256; sai thì ném `IntegrityError` | TuanThanh05 | 26/11/2026 |
+| `sha256Hex(buf)` | `crypto/envelope.js` | Băm SHA-256 dạng hex | TuanThanh05 | 26/11/2026 |
 
 ## Middleware – `src/middlewares`
 
@@ -53,6 +57,7 @@ Cập nhật mỗi khi thêm hoặc sửa hàm. Quy ước chú thích trong cod
 | `scopeFilter(req, cols)` | `authorize.js` | Sinh điều kiện WHERE theo phạm vi OWN / DEPARTMENT / ALL | TuanThanh05 | 26/11/2026 |
 | `validate(schemas)` | `validate.js` | Kiểm tra body/query/params bằng zod, kết quả đặt vào `req.input` | TuanThanh05 | 26/11/2026 |
 | `originCheck` | `originCheck.js` | Chặn request ghi có header Origin lạ (CSRF lớp 2) | TuanThanh05 | 26/11/2026 |
+| `uploadSingle(field)` | `upload.js` | Nhận 1 file vào bộ nhớ, giới hạn dung lượng theo `MAX_FILE_SIZE_MB` | TuanThanh05 | 26/11/2026 |
 | `loginRateLimit` | `rateLimit.js` | Giới hạn số lần gọi đăng nhập mỗi IP trong 1 phút | TuanThanh05 | 26/11/2026 |
 
 ## Module Auth – `src/modules/auth`
@@ -144,6 +149,29 @@ Cập nhật mỗi khi thêm hoặc sửa hàm. Quy ước chú thích trong cod
 | `getActiveVersion`, `getOpenVersion`, `nextVersionNo`, `insertVersion`, `getVersion`, `getVersionByNo`, `updateVersionFields`, `setVersionStatus`, `listVersionsOfLabel`, `listVersionsByStatus`, `listLabels` | `repo.js` | Truy vấn bảng `label_versions` | TuanThanh05 | 26/11/2026 |
 | `getVersionTypes`, `addVersionTypes`, `removeVersionTypes`, `typesInOtherOpenProposals` | `repo.js` | Truy vấn bảng `label_version_document_types` (chỉ bỏ loại khi Nháp) | TuanThanh05 | 26/11/2026 |
 | `findTypesByCodes`, `countTypesInUse`, `pointTypesToVersion`, `detachTypesFromVersion`, `currentVersionsOfTypes`, `countStoredRecordsOfTypes` | `repo.js` | Gắn/bỏ nhãn của loại tài liệu, đếm hồ sơ bị ảnh hưởng | TuanThanh05 | 26/11/2026 |
+
+## Module Records – `src/modules/records` (báo cáo 5.1 chức năng 4–7, 10, 12, 13; BM01, BM06)
+
+| Tên hàm | File | Làm gì | Người viết | Ngày |
+|---|---|---|---|---|
+| `addYears(date, n)` | `retention.js` | Cộng năm theo lịch, 29/02 sang năm không nhuận lấy 28/02 | TuanThanh05 | 26/11/2026 |
+| `fiscalYearEndFor(date, dd/mm)` | `retention.js` | Ngày kết thúc năm tài chính chứa ngày tài liệu | TuanThanh05 | 26/11/2026 |
+| `computeExpiry(label, dates)` | `retention.js` | Tính mốc và ngày hết hạn: ngày lưu trữ / cuối năm tài chính / kết thúc sự kiện; Vĩnh viễn; Chưa xác định | TuanThanh05 | 26/11/2026 |
+| `previewExpiry(query)` | `service.js` | Xem trước hạn lưu trữ dự kiến khi điền BM01 | TuanThanh05 | 26/11/2026 |
+| `createRecord(actor, user, body)` | `service.js` | Tạo hồ sơ Đang sử dụng, sinh mã HS-; nhật ký không ghi tiêu đề | TuanThanh05 | 26/11/2026 |
+| `updateRecord(actor, user, scope, code, body)` | `service.js` | Sửa hồ sơ (chỉ người tạo, khi Đang sử dụng); nhật ký trước/sau | TuanThanh05 | 26/11/2026 |
+| `cancelRecord(actor, user, scope, code, body)` | `service.js` | Hủy bỏ hồ sơ tạo nhầm: xóa khóa mọi phiên bản, Đã hủy bỏ, xóa bản mã | TuanThanh05 | 26/11/2026 |
+| `purgeBlobs(versions)` | `service.js` | Xóa bản mã đã mất khóa khỏi kho, đánh dấu `is_purged` | TuanThanh05 | 26/11/2026 |
+| `getRecord(actor, user, scope, code)` | `service.js` | Chi tiết hồ sơ (ghi nhật ký lượt xem) | TuanThanh05 | 26/11/2026 |
+| `loadDetail(conn, code)` | `service.js` | Gộp khai báo, nhãn, hạn lưu trữ, file + phiên bản, lịch sử xử lý | TuanThanh05 | 26/11/2026 |
+| `uploadFile(actor, user, scope, code, file, opts)` | `service.js` | Tải file / phiên bản mới: nhận diện theo nội dung, đối chiếu đuôi, mã hóa, ghi kho rồi CSDL | TuanThanh05 | 26/11/2026 |
+| `removeFile(actor, user, scope, code, fileId)` | `service.js` | Gỡ file khỏi danh sách đang dùng, giữ lịch sử | TuanThanh05 | 26/11/2026 |
+| `getFileContent(actor, user, scope, code, fileId, query)` | `service.js` | Xem/tải file: giải mã, kiểm tra toàn vẹn; sai thì nhật ký + cảnh báo Quản trị, Giám đốc | TuanThanh05 | 26/11/2026 |
+| `detectFormat(buf, name)`, `cleanFileName(name)` | `service.js` | Nhận diện PDF/DOCX/XLSX/JPG/PNG theo magic bytes; làm sạch tên file (UTF-8, bỏ đường dẫn) | TuanThanh05 | 26/11/2026 |
+| `inScope`, `requireVisible`, `requireEditable`, `requireUsableType`, `checkDates` | `service.js` | Kiểm tra phạm vi dữ liệu, quyền sửa, loại tài liệu dùng được, ràng buộc ngày BM01 | TuanThanh05 | 26/11/2026 |
+| `insertRecord`, `findRecord`, `getRecordDetail`, `updateRecord`, `cancelRecord`, `recordHistory` | `repo.js` | Truy vấn bảng `records` và lịch sử trong `audit_logs` | TuanThanh05 | 26/11/2026 |
+| `insertFile`, `findFile`, `deactivateFile`, `countActiveFiles`, `listFiles` | `repo.js` | Truy vấn bảng `files` | TuanThanh05 | 26/11/2026 |
+| `insertFileVersion`, `findFileVersion`, `nextFileVersionNo`, `destroyKeysOfRecord`, `markPurged` | `repo.js` | Truy vấn bảng `file_versions`; xóa khóa (hủy bằng mật mã) | TuanThanh05 | 26/11/2026 |
 
 ## Script – `scripts`
 

@@ -18,7 +18,7 @@ const schema = z.object({
   JWT_SECRET: z.string().min(32, 'JWT_SECRET cần tối thiểu 32 ký tự'),
   COOKIE_SECURE: bool.default('true'),
   LOGIN_RATE_LIMIT: z.coerce.number().int().positive().default(10),
-  MASTER_KEY_BASE64: z.string().optional(),
+  MASTER_KEY_BASE64: z.string().refine((v) => Buffer.from(v, 'base64').length === 32, 'MASTER_KEY_BASE64 phải là 32 byte mã hóa base64'),
   STORAGE_DIR: z.string().default('./storage'),
 });
 

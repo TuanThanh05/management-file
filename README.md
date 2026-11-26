@@ -25,6 +25,7 @@ Yêu cầu: Node.js ≥ 22, MySQL 8.0.22+ (khuyến nghị 8.4 LTS).
    npm install
    cp .env.example .env      # sửa DB_PASSWORD nếu đã đổi mật khẩu app_retention
    node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"   # dán kết quả vào JWT_SECRET
+   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"   # dán kết quả vào MASTER_KEY_BASE64
    ```
 4. Tạo quản trị viên đầu tiên (mật khẩu tạm in ra một lần):
    ```bash
@@ -36,6 +37,13 @@ Yêu cầu: Node.js ≥ 22, MySQL 8.0.22+ (khuyến nghị 8.4 LTS).
    npm test        # cần CSDL đã tạo ở bước 2 và 4
    ```
    Kiểm tra: `GET http://localhost:3000/api/health` → `{"status":"ok","db":"ok"}`
+
+## Khóa chủ MASTER_KEY_BASE64 – đọc kỹ
+
+- Mỗi file tải lên được mã hóa AES-256-GCM bằng một khóa riêng; khóa riêng đó được bọc bằng **khóa chủ** trong `.env` (mã hóa phong bì).
+- **Mất khóa chủ = mất toàn bộ file trong kho, không có cách khôi phục.** Sao lưu khóa chủ riêng (ví dụ trình quản lý mật khẩu), tách khỏi máy chủ và tách khỏi bản sao lưu CSDL.
+- Không commit, không gửi khóa qua chat. Mỗi máy dev dùng khóa riêng; file mã hóa ở máy này không mở được ở máy khác.
+- Đổi khóa định kỳ (key rotation) nằm ngoài phạm vi đồ án.
 
 ## Quy ước code
 
@@ -72,10 +80,10 @@ docs/          ke-hoach.md, danh-sach-ham.md, api.http
 scripts/       init-admin.js
 src/
   config/      env.js (kiểm tra .env bằng zod), database.js (pool)
-  core/        tx.js, errors.js, codes.js, time.js, logger.js, settings.js, password.js, session.js, notify.js, dbMessages.js
-  middlewares/ authenticate, authorize, validate, originCheck, rateLimit
+  core/        tx.js, errors.js, codes.js, time.js, logger.js, settings.js, password.js, session.js, notify.js, dbMessages.js, storage.js
+  middlewares/ authenticate, authorize, validate, originCheck, rateLimit, upload
   modules/     mỗi module: routes, controller, service, repo, schema
   jobs/        tác vụ định kỳ
-  crypto/      mã hóa phong bì file
-tests/         vitest + supertest, chạy trên CSDL thật (setup/ kiểm tra kết nối, helpers/ tạo dữ liệu test)
+  crypto/      envelope.js: mã hóa phong bì file (AES-256-GCM, khóa riêng từng file)
+tests/         vitest + supertest, chạy trên CSDL thật (setup/ kiểm tra kết nối, helpers/ tạo dữ liệu test, fixtures/ file mẫu; kho file test ở storage-test/)
 ```

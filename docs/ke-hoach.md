@@ -103,7 +103,7 @@ P0 = bắt buộc để demo luồng chính. P1 = làm nếu còn thời gian.
 | 2 | Auth + middleware phân quyền theo scope | Đăng nhập, khóa khi sai nhiều lần, đổi mật khẩu có test | [x] 26/11 |
 | 3 | Admin (phòng ban, người dùng, vai trò, tham số) | Tạo đủ 5 vai trò để test các ngày sau | [x] 26/11 |
 | 4 | Catalog + Labels (đề xuất → duyệt) | Loại tài liệu có nhãn đang hiệu lực | [x] 26/11 |
-| 5 | Records + Files (mã hóa, giải mã) | Tạo hồ sơ, tải file lên rồi tải về đúng sha256 | [ ] |
+| 5 | Records + Files (mã hóa, giải mã) | Tạo hồ sơ, tải file lên rồi tải về đúng sha256 | [x] 26/11 |
 | 6 | Gửi/duyệt lưu trữ, tính hạn, tra cứu, đánh dấu hết hiệu lực | Hồ sơ ARCHIVED có `expiry_date` | [ ] |
 | 7 | Job quét hạn, notifications, extensions, holds | Hồ sơ test (hạn lùi về quá khứ) chuyển sang EXPIRED | [ ] |
 | 8 | Đợt hủy và duyệt 2 cấp | Đợt đi hết Nháp → Cấp 1 → Cấp 2 → APPROVED | [ ] |
@@ -132,7 +132,25 @@ P0 = bắt buộc để demo luồng chính. P1 = làm nếu còn thời gian.
 
 ---
 
-## 7. Nhật ký thay đổi kế hoạch
+## 7. Việc cần cập nhật lại trong báo cáo
+
+Những chỗ code đã khác hoặc chi tiết hơn báo cáo; nhóm sửa báo cáo cho khớp trước khi nộp. Làm xong thì đánh [x].
+
+| # | Chỗ cần sửa | Nội dung sửa | Phát sinh | Trạng thái |
+|---|---|---|---|---|
+| 1 | Chương 3 – thiết kế CSDL / phân quyền tài khoản ứng dụng (nếu có câu "không có quyền DELETE trên bất kỳ bảng nào") | Sửa thành "… trừ việc bỏ loại tài liệu khỏi phiên bản nhãn đang Nháp (trigger `trg_lvdt_no_delete` chỉ cho xóa khi phiên bản ở Nháp)" | Ngày 4 | [ ] |
+| 2 | Chương 2 – 5.5 chức năng 2 (Quản lý phòng ban) | Thêm thao tác "Mở lại phòng ban đã ngừng hoạt động" | Ngày 3 | [ ] |
+| 3 | Chương 2 – 5.5 chức năng 3 (Quản lý tài khoản) | Thêm: Trưởng phòng phải thu hồi vai trò trước khi chuyển phòng; mở khóa bị chặn nếu làm phòng có 2 Trưởng phòng hoặc doanh nghiệp có 2 Giám đốc | Ngày 3 | [ ] |
+| 4 | Chương 2 – 5.3 chức năng 4, 5 (Nhóm hồ sơ, loại tài liệu) | Thêm thao tác "Mở lại" cho nhóm hồ sơ và loại tài liệu | Ngày 4 | [ ] |
+| 5 | Chương 2 – 5.4 chức năng 5 (Phê duyệt đề xuất nhãn) | Thêm: loại tài liệu bị bỏ khỏi phiên bản nhãn mới thì mất nhãn, không tạo hồ sơ mới được cho đến khi được gắn nhãn khác | Ngày 4 | [ ] |
+| 6 | Chương 1 – bảng nền tảng kỹ thuật | Kiểm tra khớp với mục 1 của kế hoạch này (Express 5, mysql2, zod, pdfmake, multer, file-type…) | Ngày 1 | [ ] |
+| 7 | Chương 2 – 5.1 chức năng 5 (Tải file lên) | Thêm: đuôi tên file phải khớp định dạng thật theo nội dung, không khớp thì từ chối (ví dụ PNG đặt tên .pdf) | Ngày 5 | [ ] |
+| 8 | Chương 6 – Ưu khuyết điểm / hạn chế | Thêm hạn chế: mất khóa chủ `MASTER_KEY_BASE64` thì không mở được file trong kho; chưa hỗ trợ đổi khóa định kỳ (key rotation) | Ngày 5 | [ ] |
+| 9 | Chương 2 – 5.1 chức năng 12 (Xem chi tiết hồ sơ) | Thêm: mỗi lượt xem chi tiết hồ sơ đều ghi nhật ký (như 5.3 chức năng 2 đã ghi cho Cán bộ lưu trữ) | Ngày 5 | [ ] |
+
+---
+
+## 8. Nhật ký thay đổi kế hoạch
 
 | Ngày | Thay đổi | Lý do |
 |---|---|---|
@@ -147,3 +165,5 @@ P0 = bắt buộc để demo luồng chính. P1 = làm nếu còn thời gian.
 | 26/11/2026 | Xong ngày 3. Bổ sung ngoài báo cáo: mở lại phòng ban đã ngừng hoạt động; Trưởng phòng phải thu hồi vai trò trước khi chuyển phòng; mở khóa bị chặn nếu làm phòng có 2 Trưởng phòng hoặc có 2 Giám đốc; tạo tài khoản kèm vai trò cũng báo Giám đốc | Nhóm chốt; giữ đúng quy tắc "1 Trưởng phòng/phòng, 1 Giám đốc" của 5.5 chức năng 4 |
 | 26/11/2026 | Xong ngày 4. Bổ sung ngoài báo cáo: mở lại nhóm hồ sơ và loại tài liệu; loại tài liệu bị bỏ khỏi phiên bản nhãn mới thì mất nhãn (không tạo hồ sơ mới được cho đến khi gắn nhãn khác) | Nhóm chốt |
 | 26/11/2026 | Sửa CSDL: `trg_lvdt_no_delete` chỉ cho xóa dòng `label_version_document_types` khi phiên bản ở Nháp; cấp quyền DELETE riêng cho bảng này | Báo cáo cho sửa danh sách loại tài liệu khi đề xuất ở Nháp (5.3 CN6, BM02 phần C); script cũ chặn xóa tuyệt đối nên Nháp bị kẹt. Từ khi gửi duyệt vẫn khóa như cũ |
+| 26/11/2026 | Thêm mục 7 "Việc cần cập nhật lại trong báo cáo" | Nhóm sẽ sửa báo cáo sau; ghi lại để không quên |
+| 26/11/2026 | Xong ngày 5. Đuôi file không khớp nội dung thì từ chối; README cảnh báo sao lưu khóa chủ; `MASTER_KEY_BASE64` bắt buộc khi khởi động; bản mã gắn AAD = tên lưu trữ (chống tráo file); nhật ký hồ sơ không ghi tiêu đề/mô tả (có thể chứa dữ liệu cá nhân, mà nhật ký không sửa được); viết lại `.env.example` đủ biến | Nhóm chốt; bảo vệ dữ liệu cá nhân theo yêu cầu 21 (Luật BVDLCN 2025) |
