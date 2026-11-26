@@ -63,7 +63,7 @@ storage/         files/, certificates/  (không commit)
 
 1. **`withTx(fn)`**: mở transaction → chạy nghiệp vụ → `CALL sp_write_audit_log(...)` → commit trong cùng một giao dịch. Lỗi ở đâu thì rollback hết, kể cả dòng nhật ký.
 2. **`authorize('RECORD.VIEW')`**: đọc `v_user_permissions` để lấy `scope` (OWN / DEPARTMENT / ALL), thêm điều kiện `WHERE` tương ứng. Không có quyền thì từ chối (deny-by-default).
-3. **Kiểm tra phiên mỗi request**: JWT hợp lệ, phiên trong `login_sessions` chưa bị thu hồi, chưa hết hạn.
+3. **Kiểm tra phiên mỗi request**: JWT (đặt trong cookie `httpOnly; Secure; SameSite=Strict` theo mục 7.1 báo cáo) hợp lệ, phiên trong `login_sessions` chưa bị thu hồi, chưa hết hạn.
 4. **Map lỗi**: `SIGNAL 45000` → 409 kèm thông báo; lỗi zod → 422; vi phạm UNIQUE/CHECK → 409.
 5. **Sinh mã nghiệp vụ** HS-, DH-, GH-, PT-, BB- qua `sp_next_code_number`, gọi trong cùng transaction.
 
@@ -100,7 +100,7 @@ P0 = bắt buộc để demo luồng chính. P1 = làm nếu còn thời gian.
 | Ngày | Việc | Xong khi | Trạng thái |
 |---|---|---|---|
 | 1 | Tạo repo, cấu hình, pool CSDL, `withTx`, map lỗi, `init-admin` | Chạy được script SQL, tạo được quản trị viên | [x] 26/11 |
-| 2 | Auth + middleware phân quyền theo scope | Đăng nhập, khóa khi sai nhiều lần, đổi mật khẩu có test | [ ] |
+| 2 | Auth + middleware phân quyền theo scope | Đăng nhập, khóa khi sai nhiều lần, đổi mật khẩu có test | [x] 26/11 |
 | 3 | Admin (phòng ban, người dùng, vai trò, tham số) | Tạo đủ 5 vai trò để test các ngày sau | [ ] |
 | 4 | Catalog + Labels (đề xuất → duyệt) | Loại tài liệu có nhãn đang hiệu lực | [ ] |
 | 5 | Records + Files (mã hóa, giải mã) | Tạo hồ sơ, tải file lên rồi tải về đúng sha256 | [ ] |
@@ -128,6 +128,7 @@ P0 = bắt buộc để demo luồng chính. P1 = làm nếu còn thời gian.
   5. Lên GitHub mở Pull Request vào `main`, xem lại phần thay đổi rồi Merge
   6. `git switch main && git pull`, sau đó có thể xóa nhánh cũ: `git branch -d feature/ngay-XX-...`
 - Không commit: `.env`, `node_modules/`, `storage/` (đã có trong `.gitignore`).
+- Chú thích trong code: mỗi hàm/khối một dòng tóm tắt. Thêm hoặc sửa hàm thì cập nhật `docs/danh-sach-ham.md`.
 
 ---
 
@@ -139,3 +140,6 @@ P0 = bắt buộc để demo luồng chính. P1 = làm nếu còn thời gian.
 | 26/11/2026 | Xong ngày 1. Đặt tên package `records-retention-backend`; thêm `src/core/time.js` (`todayVN`) và `logger.js` | Cột DATE là ngày VN, cần hàm dùng chung; log ứng dụng tách khỏi nhật ký nghiệp vụ |
 | 26/11/2026 | Thêm mục 6 "Quy trình Git": làm trên nhánh `feature/...`, merge vào `main` qua Pull Request | Theo quy ước của nhóm |
 | 26/11/2026 | Repo dùng `database/records_retention.sql` và `src/config/database.js`; thêm `compose.yaml` (tùy chọn, MySQL 8.4 chạy giờ UTC, tự nạp script lần đầu) | Theo cách đặt tên của nhóm; một số máy dev dùng Docker |
+| 26/11/2026 | Chốt đặc tả ngày 2 theo báo cáo (5.1 mục 1–2, 7.1 mục 1): JWT trong cookie httpOnly, mật khẩu mới 12–64 ký tự, thông báo lỗi đăng nhập dùng chung | Bám đúng báo cáo, tránh tự đặt quy tắc khác |
+| 26/11/2026 | Xong ngày 2. Quy ước: chú thích mỗi hàm/khối một dòng; thêm `docs/danh-sach-ham.md` (Tên hàm, File, Làm gì, Người viết, Ngày) và `docs/api.http` | Theo yêu cầu của nhóm; frontend có sẵn API để ghép |
+| 26/11/2026 | Thêm `SET NAMES utf8mb4;` vào đầu `database/records_retention.sql` | MySQL trong Docker nạp script bằng client latin1, tiếng Việt bị lỗi font ("NhÃ¢n viÃªn") |

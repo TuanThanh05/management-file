@@ -1,5 +1,4 @@
-// Kiểm thử phần lõi ngày 1 với CSDL THẬT (đã chạy database/records_retention.sql và init-admin).
-// CSDL không cho xóa dòng, nên mỗi test dùng mã phòng ban ngẫu nhiên để không đụng nhau.
+// Kiểm thử phần lõi ngày 1 trên CSDL thật (cần đã nạp database/records_retention.sql và chạy init-admin)
 import { describe, it, expect, afterAll } from 'vitest';
 import request from 'supertest';
 import { randomBytes } from 'node:crypto';
