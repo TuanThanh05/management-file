@@ -17,6 +17,22 @@ export function authorize(permissionCode) {
   };
 }
 
+// Cho qua nếu có ít nhất một trong các quyền (dùng cho API chỉ đọc danh mục dùng chung)
+export function authorizeAny(...permissionCodes) {
+  return async (req, res, next) => {
+    const code = permissionCodes.find((c) => req.user?.permissions?.[c]);
+    if (!code) {
+      await auditFailure(actorFromReq(req), {
+        action: 'ACCESS_DENIED', objectType: 'PERMISSION', objectCode: permissionCodes.join('|').slice(0, 50),
+        error: { code: 'FORBIDDEN' }, details: { method: req.method, path: req.originalUrl.slice(0, 200) },
+      });
+      return next(AppError.forbidden());
+    }
+    req.scope = req.user.permissions[code];
+    next();
+  };
+}
+
 // Sinh điều kiện WHERE theo phạm vi dữ liệu của người dùng
 export function scopeFilter(req, { departmentColumn, ownerColumn } = {}) {
   switch (req.scope) {

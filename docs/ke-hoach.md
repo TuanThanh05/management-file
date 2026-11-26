@@ -14,7 +14,7 @@
 
 Lý do (căn cứ từ `records_retention.sql`):
 - Phần lớn quy tắc nghiệp vụ nằm trong trigger, thủ tục (`sp_write_audit_log`, `sp_next_code_number`, `sp_verify_audit_chain`) và lỗi `SIGNAL 45000`. ORM gọi thủ tục và bắt lỗi trigger rất vướng.
-- Tài khoản `app_retention` không có quyền DELETE và DDL, nên migration của ORM không chạy được. Cấu trúc CSDL lấy thẳng từ file SQL.
+- Tài khoản `app_retention` không có quyền DDL và không có DELETE (trừ bỏ loại tài liệu khỏi phiên bản nhãn Nháp), nên migration của ORM không chạy được. Cấu trúc CSDL lấy thẳng từ file SQL.
 - `sp_write_audit_log` phải gọi TRONG giao dịch nghiệp vụ, nên phải tự kiểm soát transaction.
 
 ### Nền tảng kỹ thuật (bảng 2 cột cho báo cáo)
@@ -102,7 +102,7 @@ P0 = bắt buộc để demo luồng chính. P1 = làm nếu còn thời gian.
 | 1 | Tạo repo, cấu hình, pool CSDL, `withTx`, map lỗi, `init-admin` | Chạy được script SQL, tạo được quản trị viên | [x] 26/11 |
 | 2 | Auth + middleware phân quyền theo scope | Đăng nhập, khóa khi sai nhiều lần, đổi mật khẩu có test | [x] 26/11 |
 | 3 | Admin (phòng ban, người dùng, vai trò, tham số) | Tạo đủ 5 vai trò để test các ngày sau | [x] 26/11 |
-| 4 | Catalog + Labels (đề xuất → duyệt) | Loại tài liệu có nhãn đang hiệu lực | [ ] |
+| 4 | Catalog + Labels (đề xuất → duyệt) | Loại tài liệu có nhãn đang hiệu lực | [x] 26/11 |
 | 5 | Records + Files (mã hóa, giải mã) | Tạo hồ sơ, tải file lên rồi tải về đúng sha256 | [ ] |
 | 6 | Gửi/duyệt lưu trữ, tính hạn, tra cứu, đánh dấu hết hiệu lực | Hồ sơ ARCHIVED có `expiry_date` | [ ] |
 | 7 | Job quét hạn, notifications, extensions, holds | Hồ sơ test (hạn lùi về quá khứ) chuyển sang EXPIRED | [ ] |
@@ -145,3 +145,5 @@ P0 = bắt buộc để demo luồng chính. P1 = làm nếu còn thời gian.
 | 26/11/2026 | Thêm `SET NAMES utf8mb4;` vào đầu `database/records_retention.sql` | MySQL trong Docker nạp script bằng client latin1, tiếng Việt bị lỗi font ("NhÃ¢n viÃªn") |
 | 26/11/2026 | Biên bản PDF dùng pdfmake thay cho pdfkit | Bảng nền tảng kỹ thuật trong báo cáo ghi pdfmake |
 | 26/11/2026 | Xong ngày 3. Bổ sung ngoài báo cáo: mở lại phòng ban đã ngừng hoạt động; Trưởng phòng phải thu hồi vai trò trước khi chuyển phòng; mở khóa bị chặn nếu làm phòng có 2 Trưởng phòng hoặc có 2 Giám đốc; tạo tài khoản kèm vai trò cũng báo Giám đốc | Nhóm chốt; giữ đúng quy tắc "1 Trưởng phòng/phòng, 1 Giám đốc" của 5.5 chức năng 4 |
+| 26/11/2026 | Xong ngày 4. Bổ sung ngoài báo cáo: mở lại nhóm hồ sơ và loại tài liệu; loại tài liệu bị bỏ khỏi phiên bản nhãn mới thì mất nhãn (không tạo hồ sơ mới được cho đến khi gắn nhãn khác) | Nhóm chốt |
+| 26/11/2026 | Sửa CSDL: `trg_lvdt_no_delete` chỉ cho xóa dòng `label_version_document_types` khi phiên bản ở Nháp; cấp quyền DELETE riêng cho bảng này | Báo cáo cho sửa danh sách loại tài liệu khi đề xuất ở Nháp (5.3 CN6, BM02 phần C); script cũ chặn xóa tuyệt đối nên Nháp bị kẹt. Từ khi gửi duyệt vẫn khóa như cũ |

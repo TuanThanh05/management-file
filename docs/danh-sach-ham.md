@@ -49,6 +49,7 @@ Cập nhật mỗi khi thêm hoặc sửa hàm. Quy ước chú thích trong cod
 |---|---|---|---|---|
 | `authenticate(opts)` | `authenticate.js` | Xác thực cookie phiên, nạp người dùng/vai trò/quyền vào `req.user`; chặn khi còn bắt buộc đổi mật khẩu | TuanThanh05 | 26/11/2026 |
 | `authorize(permissionCode)` | `authorize.js` | Kiểm tra quyền theo ma trận `role_permissions`, gắn `req.scope`; từ chối thì ghi nhật ký `ACCESS_DENIED` | TuanThanh05 | 26/11/2026 |
+| `authorizeAny(...codes)` | `authorize.js` | Cho qua nếu có một trong các quyền (API chỉ đọc danh mục dùng chung) | TuanThanh05 | 26/11/2026 |
 | `scopeFilter(req, cols)` | `authorize.js` | Sinh điều kiện WHERE theo phạm vi OWN / DEPARTMENT / ALL | TuanThanh05 | 26/11/2026 |
 | `validate(schemas)` | `validate.js` | Kiểm tra body/query/params bằng zod, kết quả đặt vào `req.input` | TuanThanh05 | 26/11/2026 |
 | `originCheck` | `originCheck.js` | Chặn request ghi có header Origin lạ (CSRF lớp 2) | TuanThanh05 | 26/11/2026 |
@@ -100,6 +101,49 @@ Cập nhật mỗi khi thêm hoặc sửa hàm. Quy ước chú thích trong cod
 | `getActiveRoleCodes`, `grantRole`, `revokeRole`, `otherActiveHolderExists` | `repo.js` | Truy vấn bảng `user_roles` (thu hồi bằng ghi dấu, không xóa) | TuanThanh05 | 26/11/2026 |
 | `listSettings`, `findSettingForUpdate`, `updateSetting` | `repo.js` | Truy vấn bảng `system_settings` | TuanThanh05 | 26/11/2026 |
 | Các schema | `schema.js` | Kiểm tra dữ liệu BM20, BM21, BM22 | TuanThanh05 | 26/11/2026 |
+
+## Module Catalog – `src/modules/catalog` (báo cáo 5.3, chức năng 4–5)
+
+| Tên hàm | File | Làm gì | Người viết | Ngày |
+|---|---|---|---|---|
+| `listGroups()` | `service.js` | Danh sách nhóm hồ sơ kèm số loại, số nhãn hiệu lực | TuanThanh05 | 26/11/2026 |
+| `createGroup(actor, body)` | `service.js` | Thêm nhóm (BM14): mã duy nhất, không sửa được | TuanThanh05 | 26/11/2026 |
+| `updateGroup(actor, code, body)` | `service.js` | Sửa tên, mô tả nhóm | TuanThanh05 | 26/11/2026 |
+| `deactivateGroup(actor, code)` | `service.js` | Ngừng sử dụng nhóm khi không còn nhãn hiệu lực | TuanThanh05 | 26/11/2026 |
+| `activateGroup(actor, code)` | `service.js` | Mở lại nhóm đã ngừng sử dụng | TuanThanh05 | 26/11/2026 |
+| `listTypes(query)` | `service.js` | Danh sách loại tài liệu kèm nhãn đang áp dụng; lọc nhóm, trạng thái, dùng được | TuanThanh05 | 26/11/2026 |
+| `getType(code)` | `service.js` | Chi tiết loại tài liệu | TuanThanh05 | 26/11/2026 |
+| `createType(actor, body)` | `service.js` | Thêm loại (BM15) trong nhóm đang sử dụng; chưa có nhãn nên chưa dùng được | TuanThanh05 | 26/11/2026 |
+| `updateType(actor, code, body)` | `service.js` | Sửa tên, mô tả loại; không đổi nhóm, không đổi nhãn trực tiếp | TuanThanh05 | 26/11/2026 |
+| `deactivateType(actor, code)` | `service.js` | Ngừng sử dụng loại; hồ sơ cũ giữ nguyên | TuanThanh05 | 26/11/2026 |
+| `activateType(actor, code)` | `service.js` | Mở lại loại (nhóm phải đang sử dụng) | TuanThanh05 | 26/11/2026 |
+| `toType(row)` | `service.js` | Dữ liệu loại tài liệu trả về client, có cờ `usable` | TuanThanh05 | 26/11/2026 |
+| `listGroups`, `findGroup`, `insertGroup`, `updateGroup`, `setGroupStatus`, `countActiveLabelsInGroup` | `repo.js` | Truy vấn bảng `record_groups` | TuanThanh05 | 26/11/2026 |
+| `listTypes`, `getType`, `findType`, `insertType`, `updateType`, `setTypeStatus` | `repo.js` | Truy vấn bảng `document_types` | TuanThanh05 | 26/11/2026 |
+
+## Module Labels – `src/modules/labels` (báo cáo 5.3 chức năng 6–9, 5.4 chức năng 4–6, QT2)
+
+| Tên hàm | File | Làm gì | Người viết | Ngày |
+|---|---|---|---|---|
+| `createProposal(actor, body)` | `service.js` | Lập đề xuất Tạo mới / Sửa / Ngừng áp dụng (BM02), lưu phiên bản Nháp | TuanThanh05 | 26/11/2026 |
+| `updateProposal(actor, id, body)` | `service.js` | Sửa đề xuất Nháp/Bị từ chối, thay được danh sách loại tài liệu | TuanThanh05 | 26/11/2026 |
+| `submitProposal(actor, id)` | `service.js` | Gửi Giám đốc: kiểm tra lại ràng buộc, Nháp → Chờ duyệt, báo Giám đốc | TuanThanh05 | 26/11/2026 |
+| `withdrawProposal(actor, id)` | `service.js` | Rút đề xuất: Chờ duyệt → Nháp, báo Giám đốc | TuanThanh05 | 26/11/2026 |
+| `approveProposal(actor, id)` | `service.js` | Phê duyệt: bản mới hiệu lực, bản cũ ngừng áp dụng, gắn loại theo bản mới, loại bị bỏ ra mất nhãn | TuanThanh05 | 26/11/2026 |
+| `rejectProposal(actor, id, body)` | `service.js` | Từ chối có lý do 10–500 ký tự, báo người lập | TuanThanh05 | 26/11/2026 |
+| `getVersion(id)` | `service.js` | Chi tiết phiên bản kèm so sánh với bản hiệu lực và cảnh báo rút ngắn | TuanThanh05 | 26/11/2026 |
+| `listLabels()` | `service.js` | Danh sách nhãn, phiên bản hiệu lực, loại đang gắn, đề xuất đang mở | TuanThanh05 | 26/11/2026 |
+| `getLabelHistory(code)` | `service.js` | Mọi phiên bản của nhãn kèm số hồ sơ đang gắn | TuanThanh05 | 26/11/2026 |
+| `compareVersions(code, query)` | `service.js` | So sánh hai phiên bản bất kỳ theo từng trường | TuanThanh05 | 26/11/2026 |
+| `listProposals(query)` | `service.js` | Danh sách đề xuất theo trạng thái | TuanThanh05 | 26/11/2026 |
+| `checkRules(data)` | `service.js` | Kiểm tra luật BM02 phần B: T 1–100, mốc tính, N 1–365, tên sự kiện | TuanThanh05 | 26/11/2026 |
+| `diffVersions(old, oldTypes, new, newTypes)` | `service.js` | Liệt kê trường khác nhau giữa hai phiên bản | TuanThanh05 | 26/11/2026 |
+| `shorteningWarnings(...)` | `service.js` | Cảnh báo rút ngắn: T ngắn hơn, đổi mốc tính, kéo loại từ nhãn dài hơn; kèm số hồ sơ ảnh hưởng | TuanThanh05 | 26/11/2026 |
+| `checkTypes(...)`, `revalidate(...)` | `service.js` | Kiểm tra loại tài liệu áp dụng; kiểm tra lại toàn bộ ràng buộc trước khi gửi/duyệt | TuanThanh05 | 26/11/2026 |
+| `findLabel`, `insertLabel`, `renameLabel` | `repo.js` | Truy vấn bảng `retention_labels` | TuanThanh05 | 26/11/2026 |
+| `getActiveVersion`, `getOpenVersion`, `nextVersionNo`, `insertVersion`, `getVersion`, `getVersionByNo`, `updateVersionFields`, `setVersionStatus`, `listVersionsOfLabel`, `listVersionsByStatus`, `listLabels` | `repo.js` | Truy vấn bảng `label_versions` | TuanThanh05 | 26/11/2026 |
+| `getVersionTypes`, `addVersionTypes`, `removeVersionTypes`, `typesInOtherOpenProposals` | `repo.js` | Truy vấn bảng `label_version_document_types` (chỉ bỏ loại khi Nháp) | TuanThanh05 | 26/11/2026 |
+| `findTypesByCodes`, `countTypesInUse`, `pointTypesToVersion`, `detachTypesFromVersion`, `currentVersionsOfTypes`, `countStoredRecordsOfTypes` | `repo.js` | Gắn/bỏ nhãn của loại tài liệu, đếm hồ sơ bị ảnh hưởng | TuanThanh05 | 26/11/2026 |
 
 ## Script – `scripts`
 
