@@ -19,6 +19,7 @@ export async function expiredRows(conn, f, { page, pageSize }) {
   if (f.labelCode) { where.push('l.code = ?'); params.push(f.labelCode); }
   if (f.expiryDateFrom) { where.push('r.expiry_date >= ?'); params.push(f.expiryDateFrom); }
   if (f.expiryDateTo) { where.push('r.expiry_date <= ?'); params.push(f.expiryDateTo); }
+  if (f.eligibleOnly) where.push("r.is_disposal_eligible AND NOT EXISTS (SELECT 1 FROM disposal_batch_records x WHERE x.record_id = r.id AND x.item_status = 'INCLUDED')");
   const from = `FROM records r JOIN departments d ON d.id = r.department_id JOIN document_types t ON t.id = r.document_type_id
     JOIN record_groups g ON g.id = t.group_id JOIN label_versions v ON v.id = r.label_version_id JOIN retention_labels l ON l.id = v.label_id
     WHERE ${where.join(' AND ')}`;

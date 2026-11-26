@@ -238,6 +238,27 @@ Cập nhật mỗi khi thêm hoặc sửa hàm. Quy ước chú thích trong cod
 | `listNotifications`, `unreadCount` | `service.js` | Thông báo của tôi, số chưa đọc | TuanThanh05 | 26/11/2026 |
 | `markRead`, `markAllRead` | `service.js` | Đánh dấu đã đọc một / tất cả | TuanThanh05 | 26/11/2026 |
 
+## Module Disposals – `src/modules/disposals` (báo cáo 5.2 CN12–15, 5.3 CN13–16, 5.4 CN7–11; BM05, BM12, BM17)
+
+| Tên hàm | File | Làm gì | Người viết | Ngày |
+|---|---|---|---|---|
+| `createBatch` | `service.js` | Cán bộ lưu trữ lập đợt Nháp cho một phòng; kiểm tra từng hồ sơ | TuanThanh05 | 26/11/2026 |
+| `updateBatch` | `service.js` | Sửa đợt Nháp: lý do, thêm / bớt hồ sơ (bớt = rút kèm lý do) | TuanThanh05 | 26/11/2026 |
+| `cancelBatch` | `service.js` | Hủy bỏ đợt Nháp; hồ sơ giữ Hết hạn và dấu hủy | TuanThanh05 | 26/11/2026 |
+| `submitBatch` | `service.js` | Gửi đợt duyệt cấp 1: kiểm tra lại, hồ sơ sang Chờ duyệt hủy, báo Trưởng phòng | TuanThanh05 | 26/11/2026 |
+| `requestExclusion`, `removeExclusion` | `service.js` | Trưởng phòng đề nghị loại / bỏ đề nghị loại một hồ sơ | TuanThanh05 | 26/11/2026 |
+| `approveLevel1` | `service.js` | Đồng ý cấp 1: áp dụng việc loại, sang Chờ duyệt cấp 2, báo Giám đốc | TuanThanh05 | 26/11/2026 |
+| `returnLevel1`, `returnLevel2` | `service.js` | Trả lại đợt về Nháp kèm lý do | TuanThanh05 | 26/11/2026 |
+| `approveLevel2` | `service.js` | Giám đốc phê duyệt; thời điểm hủy = lúc duyệt + `DISPOSAL_WAIT_DAYS` | TuanThanh05 | 26/11/2026 |
+| `revokeBatch` | `service.js` | Thu hồi quyết định hủy khi chưa bắt đầu hủy (BM17) | TuanThanh05 | 26/11/2026 |
+| `backToDraft` | `service.js` | Đưa đợt về Nháp: hồ sơ về Hết hạn, xóa kết quả duyệt cũ | TuanThanh05 | 26/11/2026 |
+| `withdrawForHold` | `service.js` | Rút hồ sơ vừa bị phong tỏa khỏi đợt; đợt hết hồ sơ thì về Nháp | TuanThanh05 | 26/11/2026 |
+| `listBatches`, `getBatch`, `detail`, `summary` | `service.js` | Theo dõi đợt; chi tiết gồm danh mục, hồ sơ bị loại / rút, lịch sử | TuanThanh05 | 26/11/2026 |
+| `lockOwnDraft`, `lockLevel1`, `lockDirector`, `checkEntries`, `entryProblem` | `service.js` | Khóa đợt và kiểm tra quyền, tách biệt nhiệm vụ, điều kiện vào đợt | TuanThanh05 | 26/11/2026 |
+| `findBatch`, `batchItems`, `lockCandidates`, `insertBatch`, `includeRecords`, `updateBatch` | `repo.js` | Truy vấn bảng `disposal_batches`, `disposal_batch_records` | TuanThanh05 | 26/11/2026 |
+| `setItemStatus`, `setExclusion`, `clearExclusions`, `setRecordsStatus`, `clearEligible` | `repo.js` | Cập nhật dòng đợt-hồ sơ và trạng thái hồ sơ | TuanThanh05 | 26/11/2026 |
+| `listBatches`, `batchHistory`, `pendingLevel1`, `openBatchesOf` | `repo.js` | Danh sách đợt, lịch sử từ nhật ký, hàng chờ cấp 1, đợt đang chứa hồ sơ | TuanThanh05 | 26/11/2026 |
+
 ## Script – `scripts`
 
 | Tên hàm | File | Làm gì | Người viết | Ngày |

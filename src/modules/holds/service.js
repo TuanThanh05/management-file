@@ -8,6 +8,7 @@ import { notifyRole, departmentHeads, notifyUsers } from '../../core/notify.js';
 import { writeBlob, readBlob, deleteBlob } from '../../core/storage.js';
 import { encryptFile, decryptFile, IntegrityError } from '../../crypto/envelope.js';
 import { cleanFileName, detectFormat, BY_FORMAT } from '../records/service.js';
+import { withdrawForHold } from '../disposals/service.js';
 import * as repo from './repo.js';
 
 const PAGE_SIZE = 20;
@@ -37,7 +38,7 @@ function toDto(h, records) {
   };
 }
 
-// Đặt phong tỏa (5.4 CN11, BM04): hồ sơ Lưu trữ / Hết hạn / Chờ duyệt hủy, chưa bị phong tỏa; có hồ sơ sai thì không đặt hồ sơ nào
+// Đặt phong tỏa (5.4 CN11, BM04): hồ sơ Lưu trữ / Hết hạn / Chờ duyệt hủy, chưa bị phong tỏa; có hồ sơ sai thì không đặt hồ sơ nào; tự rút hồ sơ khỏi đợt hủy chưa kết thúc
 export async function placeHold(actor, user, body, upload) {
   if (body.expectedReleaseDate && body.expectedReleaseDate < todayVN()) {
     throw AppError.unprocessable('Ngày dự kiến gỡ không hợp lệ', [{ field: 'expectedReleaseDate', message: 'Không nhỏ hơn ngày hiện tại' }]);
@@ -69,6 +70,7 @@ export async function placeHold(actor, user, body, upload) {
       await audit({ action: 'LEGAL_HOLD_PLACE', objectType: 'LEGAL_HOLD', objectCode: c, details: {
         records: body.recordCodes, legalBasis: body.legalBasis, expectedReleaseDate: body.expectedReleaseDate ?? null, evidenceSha256: evidence?.sha256 ?? null } });
       for (const r of rows) await audit({ action: 'RECORD_HOLD', objectType: 'RECORD', objectCode: r.code, details: { hold: c } });
+      await withdrawForHold(conn, audit, rows.filter((r) => r.status === 'PENDING_DISPOSAL' || r.status === 'EXPIRED').map((r) => r.id), c);
       await notifyHoldChange(conn, rows.map((r) => r.department_id), { type: 'SYSTEM_CHANGE', objectType: 'LEGAL_HOLD', objectCode: c,
         message: `Lệnh phong tỏa ${c}: ${rows.length} hồ sơ bị phong tỏa (${body.recordCodes.slice(0, 10).join(', ')}${rows.length > 10 ? ', …' : ''})` });
       return c;

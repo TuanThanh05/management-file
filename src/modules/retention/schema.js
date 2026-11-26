@@ -12,6 +12,7 @@ export const expiredQuery = z.object({
   labelCode: code.optional(),
   expiryDateFrom: isoDate.optional(),
   expiryDateTo: isoDate.optional(),
+  eligibleOnly: z.enum(['true', 'false']).transform((v) => v === 'true').optional(),
   page: z.coerce.number().int().min(1).default(1),
 }).refine((v) => !(v.expiryDateFrom && v.expiryDateTo && v.expiryDateFrom > v.expiryDateTo),
   { path: ['expiryDateFrom'], message: 'Ngày hết hạn "từ" không được lớn hơn "đến"' });

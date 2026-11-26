@@ -106,7 +106,7 @@ P0 = bắt buộc để demo luồng chính. P1 = làm nếu còn thời gian.
 | 5 | Records + Files (mã hóa, giải mã) | Tạo hồ sơ, tải file lên rồi tải về đúng sha256 | [x] 26/11 |
 | 6 | Gửi/duyệt lưu trữ, tính hạn, tra cứu, đánh dấu hết hiệu lực | Hồ sơ ARCHIVED có `expiry_date` | [x] 26/11 |
 | 7 | Job quét hạn, notifications, extensions, holds | Hồ sơ test (hạn lùi về quá khứ) chuyển sang EXPIRED | [x] 26/11 |
-| 8 | Đợt hủy và duyệt 2 cấp | Đợt đi hết Nháp → Cấp 1 → Cấp 2 → APPROVED | [ ] |
+| 8 | Đợt hủy và duyệt 2 cấp | Đợt đi hết Nháp → Cấp 1 → Cấp 2 → APPROVED | [x] 26/11 |
 | 9 | Job thực hiện hủy, biên bản PDF, audit verify | Chạy trọn luồng hủy, kiểm tra nhật ký ra INTACT | [ ] |
 | 10 | Reports, export, backup, test end-to-end, tài liệu API | Postman collection hoặc Swagger cho frontend | [ ] |
 
@@ -156,6 +156,11 @@ Những chỗ code đã khác hoặc chi tiết hơn báo cáo; nhóm sửa báo
 | 16 | Chương 1 – bảng nền tảng kỹ thuật (nếu có ghi node-cron) | Sửa "Tác vụ định kỳ": bộ hẹn giờ của Node.js kiểm tra mỗi phút theo tham số `JOB_RUN_TIME` + khóa `GET_LOCK` của MySQL | Ngày 7 | [ ] |
 | 17 | Chương 2 – QT3.1 nhánh B | Thêm: máy chủ tắt qua giờ quét thì khi bật lại hệ thống tự chạy bù trong ngày; Quản trị hệ thống chạy tay được tác vụ; mỗi lần chạy ghi lịch sử (`job_runs`) | Ngày 7 | [ ] |
 | 18 | Chương 2 – 5.1 chức năng 14 (Lập đề xuất gia hạn) | Thêm: phòng chưa có Trưởng phòng thì thông báo chờ duyệt gửi Quản trị hệ thống (giống ngày 6) | Ngày 7 | [ ] |
+| 19 | Chương 2 – 5.4 chức năng 11 (Đặt phong tỏa) | Ghi rõ: đợt hủy không còn hồ sơ sau khi rút thì về Nháp ở **mọi trạng thái chưa hoàn tất**, kể cả Đã phê duyệt mà chưa bắt đầu hủy; lý do ghi tự động "Mọi hồ sơ trong đợt bị rút do phong tỏa"; báo Cán bộ lập đợt và Trưởng phòng | Ngày 8 | [ ] |
+| 20 | Chương 2 – 5.2 chức năng 13 (Loại hồ sơ khỏi đợt) | Thêm: Trưởng phòng được bỏ đề nghị loại trước khi đồng ý đợt | Ngày 8 | [ ] |
+| 21 | Chương 2 – 5.3 chức năng 15 (Gửi đợt hủy) | Thêm: phòng chưa có Trưởng phòng thì vẫn gửi được, thông báo chờ duyệt gửi Quản trị hệ thống | Ngày 8 | [ ] |
+| 22 | Chương 2 – 5.3 chức năng 14 (Sửa / hủy bỏ đợt) | Ghi rõ: bớt hồ sơ khỏi đợt Nháp được lưu là "rút khỏi đợt" kèm lý do (không xóa dòng, để giữ dấu vết); hủy bỏ đợt thì mọi hồ sơ được ghi rút, vẫn giữ dấu Đủ điều kiện hủy và đưa được vào đợt khác | Ngày 8 | [ ] |
+| 23 | Chương 2 – 5.4 chức năng 9, 10 (Trả lại cấp 2, Thu hồi) | Ghi rõ: đợt về Nháp thì kết quả duyệt cấp 1, cấp 2 và thời điểm hủy dự kiến bị xóa; gửi lại phải duyệt lại từ cấp 1 (lịch sử vẫn còn trong nhật ký) | Ngày 8 | [ ] |
 
 ---
 
@@ -178,3 +183,4 @@ Những chỗ code đã khác hoặc chi tiết hơn báo cáo; nhóm sửa báo
 | 26/11/2026 | Xong ngày 5. Đuôi file không khớp nội dung thì từ chối; README cảnh báo sao lưu khóa chủ; `MASTER_KEY_BASE64` bắt buộc khi khởi động; bản mã gắn AAD = tên lưu trữ (chống tráo file); nhật ký hồ sơ không ghi tiêu đề/mô tả (có thể chứa dữ liệu cá nhân, mà nhật ký không sửa được); viết lại `.env.example` đủ biến | Nhóm chốt; bảo vệ dữ liệu cá nhân theo yêu cầu 21 (Luật BVDLCN 2025) |
 | 26/11/2026 | Xong ngày 6. Giữ phương án B: hồ sơ do Trưởng phòng tạo do Cán bộ lưu trữ duyệt (đúng 5.3 CN3); vai trò người duyệt xét tại thời điểm duyệt; phòng chưa có Trưởng phòng vẫn gửi được và báo Quản trị hệ thống; tra cứu dùng LIKE (thoát `%`, `_`) trên mã và tiêu đề | Nhóm chốt |
 | 26/11/2026 | Xong ngày 7. Tác vụ định kỳ dùng bộ hẹn giờ của Node.js (mỗi phút, chạy bù khi máy tắt qua giờ) thay cho node-cron; gia hạn do Nhân viên lập (theo 5.1 CN14 và quyền trong CSDL); từ chối gia hạn báo cả Nhân viên đề xuất và Cán bộ lưu trữ; hàng chờ duyệt của Trưởng phòng có thêm đề xuất gia hạn; phong tỏa hồ sơ đang trong đợt hủy → tự rút khỏi đợt **làm ở ngày 8** (khi có đợt hủy) | Nhóm chốt; bớt một thư viện; khớp báo cáo |
+| 26/11/2026 | Xong ngày 8. Phong tỏa làm đợt hết hồ sơ thì đợt về Nháp ở mọi trạng thái chưa hoàn tất (trừ đợt đã bắt đầu hủy); Trưởng phòng bỏ được đề nghị loại; phòng chưa có Trưởng phòng vẫn gửi đợt và báo Quản trị hệ thống; thu hồi cần `confirm: true`; hàng chờ duyệt của Trưởng phòng có thêm đợt hủy chờ cấp 1 | Nhóm chốt |
