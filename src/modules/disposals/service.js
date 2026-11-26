@@ -5,6 +5,7 @@ import { nextCode } from '../../core/codes.js';
 import { formatDateVN } from '../../core/time.js';
 import { getSettings } from '../../core/settings.js';
 import { notifyUsers, notifyRole, notifyDepartmentHead } from '../../core/notify.js';
+import { certificateOf } from '../certificates/service.js';
 import * as repo from './repo.js';
 
 const PAGE_SIZE = 20;
@@ -30,6 +31,7 @@ async function detail(conn, code) {
   const b = await repo.findBatch(conn, code);
   const items = await repo.batchItems(conn, b.id);
   const history = await repo.batchHistory(conn, code);
+  const cert = b.status === 'COMPLETED' ? await certificateOf(conn, b.id) : null;
   const item = (x) => ({
     code: x.code, title: x.title, recordStatus: x.record_status, documentType: { code: x.type_code, name: x.type_name },
     label: { code: x.label_code, versionNo: x.version_no }, documentDate: x.document_date, expiryDate: x.expiry_date,
@@ -40,7 +42,9 @@ async function detail(conn, code) {
     level1: b.level1_approver_id ? { approver: b.level1_email, approvedAt: b.level1_approved_at, comment: b.level1_comment } : null,
     level2: b.level2_approver_id ? { approver: b.level2_email, approvedAt: b.level2_approved_at, comment: b.level2_comment } : null,
     startedAt: b.started_at, completedAt: b.completed_at,
-    records: items.filter((x) => x.item_status === 'INCLUDED' || x.item_status === 'DISPOSED').map(item),
+    certificate: cert ? { no: cert.certificate_no, issuedAt: cert.issued_at, sha256: cert.pdf_sha256 } : null,
+    records: items.filter((x) => x.item_status === 'INCLUDED' || x.item_status === 'DISPOSED').map((x) => ({
+      ...item(x), attemptCount: x.attempt_count, lastError: x.last_error, disposedAt: x.disposed_at })),
     removed: items.filter((x) => x.item_status === 'EXCLUDED' || x.item_status === 'WITHDRAWN').map(item),
     history: history.map((h) => ({ seq: Number(h.seq), at: h.occurred_at, action: h.action, result: h.result, by: h.actor_email, details: parseJson(h.details) })),
   };

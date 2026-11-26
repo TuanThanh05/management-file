@@ -7,7 +7,7 @@ import { notifyRole, notifyUsers } from '../../core/notify.js';
 import { computeExpiry } from './retention.js';
 import * as repo from './repo.js';
 import { loadRecordDetail } from './service.js';
-import { pendingLevel1 } from '../disposals/repo.js';
+import { pendingLevel1, directorQueue } from '../disposals/repo.js';
 
 const sameId = (a, b) => String(a) === String(b);
 
@@ -139,7 +139,7 @@ export async function rejectRecord(actor, user, code, { reason }) {
   return loadRecordDetail(pool, code);
 }
 
-// Hàng chờ duyệt của người đang đăng nhập (5.2 CN4): yêu cầu lưu trữ; Trưởng phòng thêm đề xuất gia hạn và đợt hủy chờ cấp 1 của phòng
+// Hàng chờ duyệt (5.2 CN4, 5.4 CN3): yêu cầu lưu trữ; Trưởng phòng thêm gia hạn, đợt chờ cấp 1; Giám đốc thêm đề xuất nhãn, đợt chờ cấp 2, đợt đang chờ hủy
 export async function listApprovals(user) {
   const isHead = user.roles.includes('DEPARTMENT_HEAD');
   const rows = await repo.listPendingApprovals(pool, {
@@ -149,6 +149,7 @@ export async function listApprovals(user) {
   });
   const ext = isHead ? await repo.listPendingExtensions(pool, user.departmentId, user.id) : [];
   const batches = isHead ? await pendingLevel1(pool, user.departmentId, user.id) : [];
+  const director = user.roles.includes('DIRECTOR') ? await directorQueue(pool, user.id) : null;
   return {
     items: rows.map((r) => ({
       code: r.code, title: r.title, documentDate: r.document_date, submittedAt: r.submitted_at, waitingDays: Number(r.waiting_days),
@@ -163,6 +164,14 @@ export async function listApprovals(user) {
       code: b.code, reason: b.reason, recordCount: Number(b.record_count), submittedAt: b.submitted_at,
       waitingDays: Number(b.waiting_days), createdBy: b.created_by_email,
     })),
+    ...(director && {
+      labelProposals: director.labels.map((l) => ({ id: String(l.id), labelCode: l.label_code, versionNo: l.version_no, proposalType: l.proposal_type,
+        submittedAt: l.submitted_at, waitingDays: Number(l.waiting_days) })),
+      disposalsLevel2: director.level2.map((b) => ({ code: b.code, department: b.department_code, recordCount: Number(b.record_count),
+        level1ApprovedAt: b.level1_approved_at, waitingDays: Number(b.waiting_days) })),
+      disposalsScheduled: director.scheduled.map((b) => ({ code: b.code, department: b.department_code, recordCount: Number(b.record_count),
+        scheduledAt: b.scheduled_at, minutesLeft: Math.max(0, Number(b.minutes_left)) })),
+    }),
   };
 }
 

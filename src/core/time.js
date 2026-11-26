@@ -20,3 +20,10 @@ export function formatDateVN(dateStr) {
   const [y, m, d] = dateStr.split('-');
   return `${d}/${m}/${y}`;
 }
+
+// Đổi thời điểm (Date / chuỗi ISO, UTC) sang 'dd/mm/yyyy HH:MM' giờ Việt Nam
+export function formatDateTimeVN(value) {
+  if (!value) return '';
+  const iso = new Date(new Date(value).getTime() + VN_OFFSET_MS).toISOString();
+  return `${formatDateVN(iso.slice(0, 10))} ${iso.slice(11, 16)}`;
+}

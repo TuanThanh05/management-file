@@ -258,6 +258,32 @@ Cập nhật mỗi khi thêm hoặc sửa hàm. Quy ước chú thích trong cod
 | `findBatch`, `batchItems`, `lockCandidates`, `insertBatch`, `includeRecords`, `updateBatch` | `repo.js` | Truy vấn bảng `disposal_batches`, `disposal_batch_records` | TuanThanh05 | 26/11/2026 |
 | `setItemStatus`, `setExclusion`, `clearExclusions`, `setRecordsStatus`, `clearEligible` | `repo.js` | Cập nhật dòng đợt-hồ sơ và trạng thái hồ sơ | TuanThanh05 | 26/11/2026 |
 | `listBatches`, `batchHistory`, `pendingLevel1`, `openBatchesOf` | `repo.js` | Danh sách đợt, lịch sử từ nhật ký, hàng chờ cấp 1, đợt đang chứa hồ sơ | TuanThanh05 | 26/11/2026 |
+| `renderPdf` | `core/pdf.js` | Dựng PDF bằng pdfmake (phông Roboto tiếng Việt, chặn tải URL ngoài) | TuanThanh05 | 26/11/2026 |
+| `formatDateTimeVN` | `core/time.js` | Đổi thời điểm UTC sang dd/mm/yyyy HH:MM giờ Việt Nam | TuanThanh05 | 26/11/2026 |
+| `directorQueue` | `disposals/repo.js` | Hàng chờ của Giám đốc: đề xuất nhãn, đợt chờ cấp 2, đợt đang chờ hủy | TuanThanh05 | 26/11/2026 |
+| `runDisposalExecution`, `hasDueBatches` | `jobs/disposalExecution.js` | Thực hiện hủy các đợt đến giờ hẹn; có đợt đến giờ không | TuanThanh05 | 26/11/2026 |
+| `processBatch` | `jobs/disposalExecution.js` | Kiểm tra lần cuối → hủy từng hồ sơ → lập biên bản, hoàn tất đợt | TuanThanh05 | 26/11/2026 |
+| `disposeRecord` | `jobs/disposalExecution.js` | Xóa khóa mọi phiên bản, che tiêu đề nếu có dữ liệu cá nhân, chuyển Đã hủy | TuanThanh05 | 26/11/2026 |
+| `withdrawItem`, `finalCheck`, `includedItems` | `jobs/disposalExecution.js` | Rút hồ sơ không đạt kiểm tra lần cuối; điều kiện kiểm tra | TuanThanh05 | 26/11/2026 |
+| `recordFailure`, `sweepPurge` | `jobs/disposalExecution.js` | Ghi lỗi để thử lại, báo khi lỗi từ 3 lần; xóa nốt bản mã còn sót | TuanThanh05 | 26/11/2026 |
+| `failedRecently` | `jobs/scheduler.js` | Lần thực hiện hủy trong 15 phút gần nhất có lỗi không (tránh thử lại liên tục) | TuanThanh05 | 26/11/2026 |
+
+## Module Certificates – `src/modules/certificates` (báo cáo QT4.2, 5.3 CN18; BM16)
+
+| Tên hàm | File | Làm gì | Người viết | Ngày |
+|---|---|---|---|---|
+| `buildSnapshot` | `document.js` | Chụp nội dung BM16: đợt, người duyệt, danh mục đã hủy, hồ sơ bị rút khi kiểm tra lần cuối | TuanThanh05 | 26/11/2026 |
+| `certificateDocument`, `snapshotHash` | `document.js` | Bố cục PDF biên bản; mã băm nội dung in ở chân trang | TuanThanh05 | 26/11/2026 |
+| `issueCertificate`, `discardCertificateFile` | `service.js` | Cấp số BB-, sinh PDF, lưu file và mã băm; xóa file khi giao dịch hủy | TuanThanh05 | 26/11/2026 |
+| `certificateOf`, `downloadCertificate` | `service.js` | Thông tin biên bản của đợt; tải biên bản có kiểm tra lại SHA-256 | TuanThanh05 | 26/11/2026 |
+
+## Module Audit – `src/modules/audit` (báo cáo 5.4 CN14–15; BM18, BM19)
+
+| Tên hàm | File | Làm gì | Người viết | Ngày |
+|---|---|---|---|---|
+| `listLogs` | `service.js` | Tra cứu nhật ký chỉ đọc, mặc định 7 ngày, 50 dòng/trang; ghi nhật ký lượt xem | TuanThanh05 | 26/11/2026 |
+| `verifyChain` | `service.js` | Kiểm tra chuỗi băm qua `sp_verify_audit_chain`, lưu `integrity_checks`, cảnh báo khi sai lệch | TuanThanh05 | 26/11/2026 |
+| `listChecks` | `service.js` | Lịch sử các lần kiểm tra toàn vẹn | TuanThanh05 | 26/11/2026 |
 
 ## Script – `scripts`
 

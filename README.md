@@ -49,7 +49,9 @@ Yêu cầu: Node.js ≥ 22, MySQL 8.0.22+ (khuyến nghị 8.4 LTS).
 
 - `npm start` bật bộ hẹn giờ: mỗi phút kiểm tra, đã qua giờ `JOB_RUN_TIME` (giờ VN, sửa trong tham số hệ thống) mà hôm nay chưa chạy thì chạy quét hạn. Máy chủ tắt qua giờ chạy thì bật lên sẽ chạy bù.
 - Chạy nhiều tiến trình cũng không bị chạy trùng (khóa `GET_LOCK` của MySQL). Mỗi lần chạy ghi vào `job_runs`.
-- Test nhanh: Quản trị viên gọi `POST /api/admin/jobs/expiry-scan/run`, xem kết quả ở `GET /api/admin/jobs/runs`.
+- Thực hiện hủy: mỗi phút kiểm tra, có đợt Đã phê duyệt đến giờ hẹn thì hủy (xóa khóa → xóa bản mã → lập biên bản PDF). Lần chạy có lỗi thì 15 phút sau mới thử lại.
+- Test nhanh: Quản trị viên gọi `POST /api/admin/jobs/expiry-scan/run` hoặc `POST /api/admin/jobs/disposal-execution/run`, xem kết quả ở `GET /api/admin/jobs/runs`.
+- Biên bản lưu ở `STORAGE_DIR/certificates` (vĩnh viễn, không xóa); sao lưu cùng kho file.
 
 ## Quy ước code
 
@@ -86,10 +88,10 @@ docs/          ke-hoach.md, danh-sach-ham.md, api.http
 scripts/       init-admin.js
 src/
   config/      env.js (kiểm tra .env bằng zod), database.js (pool)
-  core/        tx.js, errors.js, codes.js, time.js, logger.js, settings.js, password.js, session.js, notify.js, dbMessages.js, storage.js
+  core/        tx.js, errors.js, codes.js, time.js, logger.js, settings.js, password.js, session.js, notify.js, dbMessages.js, storage.js, pdf.js
   middlewares/ authenticate, authorize, validate, originCheck, rateLimit, upload
   modules/     mỗi module: routes, controller, service, repo, schema
-  jobs/        runner.js (khóa + job_runs), scheduler.js (hẹn giờ mỗi phút), expiryScan.js (quét hạn)
+  jobs/        runner.js (khóa + job_runs), scheduler.js (hẹn giờ mỗi phút), expiryScan.js (quét hạn), disposalExecution.js (thực hiện hủy)
   crypto/      envelope.js: mã hóa phong bì file (AES-256-GCM, khóa riêng từng file)
 tests/         vitest + supertest, chạy trên CSDL thật (setup/ kiểm tra kết nối, helpers/ tạo dữ liệu test, fixtures/ file mẫu; kho file test ở storage-test/)
 ```

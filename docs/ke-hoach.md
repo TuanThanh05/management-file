@@ -107,7 +107,7 @@ P0 = bắt buộc để demo luồng chính. P1 = làm nếu còn thời gian.
 | 6 | Gửi/duyệt lưu trữ, tính hạn, tra cứu, đánh dấu hết hiệu lực | Hồ sơ ARCHIVED có `expiry_date` | [x] 26/11 |
 | 7 | Job quét hạn, notifications, extensions, holds | Hồ sơ test (hạn lùi về quá khứ) chuyển sang EXPIRED | [x] 26/11 |
 | 8 | Đợt hủy và duyệt 2 cấp | Đợt đi hết Nháp → Cấp 1 → Cấp 2 → APPROVED | [x] 26/11 |
-| 9 | Job thực hiện hủy, biên bản PDF, audit verify | Chạy trọn luồng hủy, kiểm tra nhật ký ra INTACT | [ ] |
+| 9 | Job thực hiện hủy, biên bản PDF, audit verify | Chạy trọn luồng hủy, kiểm tra nhật ký ra INTACT | [x] 26/11 |
 | 10 | Reports, export, backup, test end-to-end, tài liệu API | Postman collection hoặc Swagger cho frontend | [ ] |
 
 ### Lưu ý để kịp tiến độ
@@ -161,6 +161,11 @@ Những chỗ code đã khác hoặc chi tiết hơn báo cáo; nhóm sửa báo
 | 21 | Chương 2 – 5.3 chức năng 15 (Gửi đợt hủy) | Thêm: phòng chưa có Trưởng phòng thì vẫn gửi được, thông báo chờ duyệt gửi Quản trị hệ thống | Ngày 8 | [ ] |
 | 22 | Chương 2 – 5.3 chức năng 14 (Sửa / hủy bỏ đợt) | Ghi rõ: bớt hồ sơ khỏi đợt Nháp được lưu là "rút khỏi đợt" kèm lý do (không xóa dòng, để giữ dấu vết); hủy bỏ đợt thì mọi hồ sơ được ghi rút, vẫn giữ dấu Đủ điều kiện hủy và đưa được vào đợt khác | Ngày 8 | [ ] |
 | 23 | Chương 2 – 5.4 chức năng 9, 10 (Trả lại cấp 2, Thu hồi) | Ghi rõ: đợt về Nháp thì kết quả duyệt cấp 1, cấp 2 và thời điểm hủy dự kiến bị xóa; gửi lại phải duyệt lại từ cấp 1 (lịch sử vẫn còn trong nhật ký) | Ngày 8 | [ ] |
+| 24 | Chương 2 – 7.1 yêu cầu số 14; 7.2 yêu cầu số 17 | Sửa "truy vấn tham số hóa (**Prisma**)" thành "truy vấn tham số hóa qua **mysql2** (không dùng ORM)"; sửa "cấu trúc CSDL quản lý bằng **migration**" thành "cấu trúc CSDL quản lý bằng script SQL `records_retention.sql` (nguồn chuẩn, có trigger và thủ tục)" | Ngày 9 | [ ] |
+| 25 | Chương 2 – 7.2 yêu cầu số 3 (Kiểm soát truy cập) | Sửa: truy cập hồ sơ / đối tượng **ngoài phạm vi** trả **404** (không lộ đối tượng có tồn tại); trong phạm vi nhưng không đủ quyền (ví dụ không phải người tạo, không phải người duyệt) trả **403** | Ngày 9 | [ ] |
+| 26 | Chương 2 – BM16 trường 11 | Ghi rõ: chân trang in **SHA-256 của nội dung biên bản** (bản chụp JSON); SHA-256 của **file PDF** lưu trong CSDL, kiểm lại mỗi lần tải và trả kèm khi tải (một file không thể chứa mã băm của chính nó) | Ngày 9 | [ ] |
+| 27 | Chương 2 – BM16 trường 9 | Ghi rõ: danh mục in mã băm từng phiên bản file, **không in tên file** (tên file có thể chứa dữ liệu cá nhân) | Ngày 9 | [ ] |
+| 28 | Chương 2 – QT4.2 | Thêm: tác vụ kiểm tra mỗi phút, đợt đến giờ hẹn thì hủy ngay; lần chạy có lỗi thì 15 phút sau mới thử lại; một hồ sơ lỗi từ 3 lần trở lên thì báo Quản trị hệ thống và Cán bộ lưu trữ; kiểm tra lần cuối không còn hồ sơ đạt thì đợt về Nháp, không lập biên bản | Ngày 9 | [ ] |
 
 ---
 
@@ -184,3 +189,4 @@ Những chỗ code đã khác hoặc chi tiết hơn báo cáo; nhóm sửa báo
 | 26/11/2026 | Xong ngày 6. Giữ phương án B: hồ sơ do Trưởng phòng tạo do Cán bộ lưu trữ duyệt (đúng 5.3 CN3); vai trò người duyệt xét tại thời điểm duyệt; phòng chưa có Trưởng phòng vẫn gửi được và báo Quản trị hệ thống; tra cứu dùng LIKE (thoát `%`, `_`) trên mã và tiêu đề | Nhóm chốt |
 | 26/11/2026 | Xong ngày 7. Tác vụ định kỳ dùng bộ hẹn giờ của Node.js (mỗi phút, chạy bù khi máy tắt qua giờ) thay cho node-cron; gia hạn do Nhân viên lập (theo 5.1 CN14 và quyền trong CSDL); từ chối gia hạn báo cả Nhân viên đề xuất và Cán bộ lưu trữ; hàng chờ duyệt của Trưởng phòng có thêm đề xuất gia hạn; phong tỏa hồ sơ đang trong đợt hủy → tự rút khỏi đợt **làm ở ngày 8** (khi có đợt hủy) | Nhóm chốt; bớt một thư viện; khớp báo cáo |
 | 26/11/2026 | Xong ngày 8. Phong tỏa làm đợt hết hồ sơ thì đợt về Nháp ở mọi trạng thái chưa hoàn tất (trừ đợt đã bắt đầu hủy); Trưởng phòng bỏ được đề nghị loại; phòng chưa có Trưởng phòng vẫn gửi đợt và báo Quản trị hệ thống; thu hồi cần `confirm: true`; hàng chờ duyệt của Trưởng phòng có thêm đợt hủy chờ cấp 1 | Nhóm chốt |
+| 26/11/2026 | Xong ngày 9. Thực hiện hủy kiểm tra mỗi phút (hủy đúng giờ hẹn), lỗi thì nghỉ 15 phút, từ lần lỗi thứ 3 báo Quản trị hệ thống và Cán bộ lưu trữ; kiểm tra lần cuối làm trước khi đánh dấu bắt đầu hủy, hết hồ sơ đạt thì đợt về Nháp; biên bản pdfmake 0.3 (phông Roboto, chặn tải URL ngoài); hàng chờ của Giám đốc thêm đề xuất nhãn, đợt chờ cấp 2, đợt đang chờ hủy | Nhóm chốt |

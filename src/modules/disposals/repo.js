@@ -136,3 +136,21 @@ export async function openBatchesOf(conn, recordIds) {
      ORDER BY b.id FOR UPDATE OF b, x`, [recordIds]);
   return rows;
 }
+
+// Hàng chờ của Giám đốc: đề xuất nhãn Chờ duyệt, đợt Chờ duyệt cấp 2, đợt Đã phê duyệt đang trong thời gian chờ
+export async function directorQueue(conn) {
+  const days = (col) => `DATEDIFF(DATE(UTC_TIMESTAMP() + INTERVAL 7 HOUR), DATE(${col} + INTERVAL 7 HOUR))`;
+  const count = "(SELECT COUNT(*) FROM disposal_batch_records x WHERE x.batch_id = b.id AND x.item_status = 'INCLUDED')";
+  const [labels] = await conn.query(
+    `SELECT v.id, l.code AS label_code, v.version_no, v.proposal_type, v.submitted_at, ${days('v.submitted_at')} AS waiting_days
+     FROM label_versions v JOIN retention_labels l ON l.id = v.label_id WHERE v.status = 'PENDING' ORDER BY v.submitted_at`);
+  const [level2] = await conn.query(
+    `SELECT b.code, d.code AS department_code, b.level1_approved_at, ${count} AS record_count, ${days('b.level1_approved_at')} AS waiting_days
+     FROM disposal_batches b JOIN departments d ON d.id = b.department_id WHERE b.status = 'PENDING_LEVEL_2' ORDER BY b.level1_approved_at`);
+  const [scheduled] = await conn.query(
+    `SELECT b.code, d.code AS department_code, b.scheduled_at, ${count} AS record_count,
+            TIMESTAMPDIFF(MINUTE, UTC_TIMESTAMP(3), b.scheduled_at) AS minutes_left
+     FROM disposal_batches b JOIN departments d ON d.id = b.department_id
+     WHERE b.status = 'APPROVED' AND b.started_at IS NULL ORDER BY b.scheduled_at`);
+  return { labels, level2, scheduled };
+}
