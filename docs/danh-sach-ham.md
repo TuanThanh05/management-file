@@ -39,6 +39,9 @@ Cập nhật mỗi khi thêm hoặc sửa hàm. Quy ước chú thích trong cod
 | `verifySessionToken(token)` | `session.js` | Kiểm tra chữ ký và hạn JWT | TuanThanh05 | 26/11/2026 |
 | `setSessionCookie(res, token, maxAgeMs)` | `session.js` | Đặt cookie phiên httpOnly, Secure, SameSite=Strict (mục 7.1) | TuanThanh05 | 26/11/2026 |
 | `clearSessionCookie(res)` | `session.js` | Xóa cookie phiên | TuanThanh05 | 26/11/2026 |
+| `notifyUsers(conn, ids, payload)` | `notify.js` | Gửi thông báo cho danh sách người nhận | TuanThanh05 | 26/11/2026 |
+| `notifyRole(conn, roleCode, payload)` | `notify.js` | Gửi thông báo cho mọi tài khoản đang giữ một vai trò | TuanThanh05 | 26/11/2026 |
+| `translateDbMessage(msg)` | `dbMessages.js` | Dịch thông báo lỗi trigger sang tiếng Việt có dấu | TuanThanh05 | 26/11/2026 |
 
 ## Middleware – `src/middlewares`
 
@@ -71,6 +74,32 @@ Cập nhật mỗi khi thêm hoặc sửa hàm. Quy ước chú thích trong cod
 | `loadAuthContext(userId, sessionId)` | `repo.js` | Nạp phiên + tài khoản + vai trò + quyền | TuanThanh05 | 26/11/2026 |
 | `touchSession(sessionId)` | `repo.js` | Cập nhật thời điểm hoạt động cuối của phiên | TuanThanh05 | 26/11/2026 |
 | `loginSchema`, `changePasswordSchema` | `schema.js` | Kiểm tra dữ liệu BM08, BM09 | TuanThanh05 | 26/11/2026 |
+
+## Module Admin – `src/modules/admin` (báo cáo 5.5, chức năng 2–6)
+
+| Tên hàm | File | Làm gì | Người viết | Ngày |
+|---|---|---|---|---|
+| `listDepartments()` | `service.js` | Danh sách phòng ban kèm phòng cha, Trưởng phòng, số tài khoản hoạt động | TuanThanh05 | 26/11/2026 |
+| `createDepartment(actor, body)` | `service.js` | Thêm phòng ban (BM20): mã duy nhất viết hoa, phòng cha đang hoạt động | TuanThanh05 | 26/11/2026 |
+| `updateDepartment(actor, code, body)` | `service.js` | Sửa tên, phòng ban cha; chặn vòng lặp | TuanThanh05 | 26/11/2026 |
+| `deactivateDepartment(actor, code)` | `service.js` | Ngừng hoạt động khi không còn tài khoản hoạt động | TuanThanh05 | 26/11/2026 |
+| `activateDepartment(actor, code)` | `service.js` | Mở lại phòng ban đã ngừng hoạt động | TuanThanh05 | 26/11/2026 |
+| `listUsers(query)` | `service.js` | Danh sách tài khoản có lọc, phân trang | TuanThanh05 | 26/11/2026 |
+| `getUser(id)` | `service.js` | Chi tiết tài khoản | TuanThanh05 | 26/11/2026 |
+| `createUser(actor, body)` | `service.js` | Tạo tài khoản kèm vai trò (BM21), trả mật khẩu tạm một lần, báo Giám đốc | TuanThanh05 | 26/11/2026 |
+| `updateUser(actor, id, body)` | `service.js` | Sửa họ tên, phòng ban; Trưởng phòng phải thu hồi vai trò trước khi chuyển phòng | TuanThanh05 | 26/11/2026 |
+| `lockUser(actor, id)` | `service.js` | Khóa tài khoản, hủy mọi phiên; không khóa chính mình | TuanThanh05 | 26/11/2026 |
+| `unlockUser(actor, id)` | `service.js` | Mở khóa; chặn nếu làm phòng có 2 Trưởng phòng hoặc có 2 Giám đốc | TuanThanh05 | 26/11/2026 |
+| `resetUserPassword(actor, id)` | `service.js` | Đặt lại mật khẩu tạm, hủy phiên, thông báo cho người dùng | TuanThanh05 | 26/11/2026 |
+| `setUserRoles(actor, id, body)` | `service.js` | Đặt lại vai trò (thu hồi rồi gán), hủy phiên, nhật ký trước/sau, báo Giám đốc | TuanThanh05 | 26/11/2026 |
+| `listSettings()` | `service.js` | Danh sách 11 tham số BM22 | TuanThanh05 | 26/11/2026 |
+| `checkSettingValue(setting, value)` | `service.js` | Kiểm tra giá trị theo kiểu và khoảng cho phép (ngày tháng thật, hh:mm) | TuanThanh05 | 26/11/2026 |
+| `updateSetting(actor, key, body)` | `service.js` | Sửa tham số, nhật ký giá trị cũ/mới, báo Giám đốc | TuanThanh05 | 26/11/2026 |
+| `listDepartments`, `findDepartment`, `insertDepartment`, `updateDepartment`, `setDepartmentStatus`, `countActiveUsersInDepartment` | `repo.js` | Truy vấn bảng `departments` | TuanThanh05 | 26/11/2026 |
+| `listUsers`, `getUser`, `lockUserRow`, `insertUser`, `updateUser`, `lockUser`, `unlockUser`, `resetPassword` | `repo.js` | Truy vấn bảng `users` | TuanThanh05 | 26/11/2026 |
+| `getActiveRoleCodes`, `grantRole`, `revokeRole`, `otherActiveHolderExists` | `repo.js` | Truy vấn bảng `user_roles` (thu hồi bằng ghi dấu, không xóa) | TuanThanh05 | 26/11/2026 |
+| `listSettings`, `findSettingForUpdate`, `updateSetting` | `repo.js` | Truy vấn bảng `system_settings` | TuanThanh05 | 26/11/2026 |
+| Các schema | `schema.js` | Kiểm tra dữ liệu BM20, BM21, BM22 | TuanThanh05 | 26/11/2026 |
 
 ## Script – `scripts`
 

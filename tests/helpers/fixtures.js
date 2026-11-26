@@ -35,6 +35,22 @@ export async function createUser({ roles = [ROLE.EMPLOYEE], password = 'MatKhauT
   return { id: String(ins.insertId), email, password, departmentId: String(deptId) };
 }
 
+// Giám đốc đang hoạt động (doanh nghiệp chỉ có 1); chưa có thì tạo
+export async function getOrCreateDirector() {
+  const [[row]] = await pool.query(
+    `SELECT u.id FROM user_roles ur JOIN users u ON u.id = ur.user_id
+     WHERE ur.role_id = 4 AND ur.revoked_at IS NULL AND u.status = 'ACTIVE' LIMIT 1`);
+  if (row) return { id: String(row.id) };
+  return createUser({ roles: [ROLE.DIRECTOR] });
+}
+
+// Tạo Quản trị viên test và trả về cookie phiên đã đăng nhập
+export async function adminSession(app) {
+  const admin = await createUser({ roles: [ROLE.SYSTEM_ADMIN] });
+  const { cookie } = await login(app, admin.email, admin.password);
+  return { admin, cookie };
+}
+
 // Lấy chuỗi cookie phiên từ response
 export function sessionCookie(res) {
   const raw = (res.headers['set-cookie'] ?? []).find((c) => c.startsWith('rr_session='));
