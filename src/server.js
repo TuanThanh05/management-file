@@ -1,5 +1,5 @@
 import { env } from './config/env.js';
-import { pingDb, closeDb } from './config/db.js';
+import { pingDb, closeDb } from './config/database.js';
 import { logger } from './core/logger.js';
 import { createApp } from './app.js';
 

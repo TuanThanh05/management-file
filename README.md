@@ -7,6 +7,10 @@ Kế hoạch chi tiết: `docs/ke-hoach.md`.
 
 Yêu cầu: Node.js ≥ 22, MySQL 8.0.22+ (khuyến nghị 8.4 LTS).
 
+**Cách A – dùng Docker** (thay cho bước 1–2 bên dưới): đặt `MYSQL_ROOT_PASSWORD` trong `.env`, chạy `docker compose up -d`. Lần đầu container tự nạp `database/records_retention.sql` và đã chạy giờ UTC. Tạo lại CSDL từ đầu: `docker compose down -v && docker compose up -d`.
+
+**Cách B – MySQL cài trên máy:**
+
 1. MySQL phải chạy theo giờ UTC. Thêm vào file cấu hình MySQL (`my.cnf` / `my.ini`), mục `[mysqld]`:
    ```ini
    default-time-zone=+00:00
@@ -14,7 +18,7 @@ Yêu cầu: Node.js ≥ 22, MySQL 8.0.22+ (khuyến nghị 8.4 LTS).
    Nếu nạp script báo lỗi 1419 (binary logging), thêm `log_bin_trust_function_creators=1`.
 2. Tạo CSDL (XÓA CSDL cũ nếu có, chỉ dùng cho máy dev):
    ```bash
-   mysql -uroot -p < db/records_retention.sql
+   mysql -uroot -p < database/records_retention.sql
    ```
 3. Cài thư viện, tạo `.env`:
    ```bash
@@ -57,11 +61,11 @@ Yêu cầu: Node.js ≥ 22, MySQL 8.0.22+ (khuyến nghị 8.4 LTS).
 ## Cấu trúc
 
 ```
-db/            records_retention.sql (nguồn chuẩn của CSDL)
+database/      records_retention.sql (nguồn chuẩn của CSDL)
 docs/          ke-hoach.md
 scripts/       init-admin.js
 src/
-  config/      env.js (kiểm tra .env bằng zod), db.js (pool)
+  config/      env.js (kiểm tra .env bằng zod), database.js (pool)
   core/        tx.js, errors.js, codes.js, time.js, logger.js
   middlewares/ (ngày 2) auth, authorize, validate
   modules/     mỗi module: routes, controller, service, repo, schema

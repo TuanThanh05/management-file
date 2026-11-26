@@ -11,7 +11,7 @@ import { randomBytes } from 'node:crypto';
 import bcrypt from 'bcrypt';
 import { z } from 'zod';
 import { withTx, SYSTEM_ACTOR } from '../src/core/tx.js';
-import { closeDb } from '../src/config/db.js';
+import { closeDb } from '../src/config/database.js';
 import { toAppError } from '../src/core/errors.js';
 
 const BCRYPT_COST = 12;
