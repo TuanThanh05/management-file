@@ -758,7 +758,13 @@ CREATE TRIGGER trg_record_groups_no_delete BEFORE DELETE ON record_groups FOR EA
 CREATE TRIGGER trg_retention_labels_no_delete BEFORE DELETE ON retention_labels FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Khong duoc xoa nhan'$$
 CREATE TRIGGER trg_label_versions_no_delete BEFORE DELETE ON label_versions FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Khong duoc xoa phien ban nhan'$$
 CREATE TRIGGER trg_document_types_no_delete BEFORE DELETE ON document_types FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Khong duoc xoa loai tai lieu'$$
-CREATE TRIGGER trg_lvdt_no_delete BEFORE DELETE ON label_version_document_types FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Khong duoc xoa lich su ap dung nhan'$$
+-- Chỉ được bỏ loại tài liệu khỏi phiên bản đang Nháp (BM02 phần C được sửa khi Nháp); đã gửi duyệt thì khóa
+CREATE TRIGGER trg_lvdt_no_delete BEFORE DELETE ON label_version_document_types FOR EACH ROW
+BEGIN
+  IF (SELECT status FROM label_versions WHERE id = OLD.label_version_id) <> 'DRAFT' THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Khong duoc xoa lich su ap dung nhan';
+  END IF;
+END$$
 CREATE TRIGGER trg_lvdt_no_update BEFORE UPDATE ON label_version_document_types FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Khong duoc sua lich su ap dung nhan'$$
 CREATE TRIGGER trg_records_no_delete BEFORE DELETE ON records FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ho so khong duoc phep xoa'$$
 CREATE TRIGGER trg_files_no_delete BEFORE DELETE ON files FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Khong duoc xoa file'$$
@@ -1485,7 +1491,7 @@ INSERT INTO system_settings (setting_key, value, value_type, min_value, max_valu
 
 
 -- TÀI KHOẢN ỨNG DỤNG – ĐẶC QUYỀN TỐI THIỂU
--- - Không có DELETE trên bất kỳ bảng nào, không có quyền thay đổi cấu trúc.
+-- - Không có DELETE (trừ label_version_document_types, trigger chỉ cho xóa khi phiên bản Nháp), không có quyền thay đổi cấu trúc.
 -- - Nhật ký chỉ ghi qua sp_write_audit_log; mã nghiệp vụ cấp qua sp_next_code_number.
 -- - Đổi mật khẩu bên dưới trước khi triển khai.
 
@@ -1499,7 +1505,7 @@ GRANT SELECT, INSERT, UPDATE ON records_retention.record_groups TO 'app_retentio
 GRANT SELECT, INSERT, UPDATE ON records_retention.retention_labels TO 'app_retention'@'%';
 GRANT SELECT, INSERT, UPDATE ON records_retention.label_versions TO 'app_retention'@'%';
 GRANT SELECT, INSERT, UPDATE ON records_retention.document_types TO 'app_retention'@'%';
-GRANT SELECT, INSERT ON records_retention.label_version_document_types TO 'app_retention'@'%';
+GRANT SELECT, INSERT, DELETE ON records_retention.label_version_document_types TO 'app_retention'@'%';
 GRANT SELECT, INSERT, UPDATE ON records_retention.records TO 'app_retention'@'%';
 GRANT SELECT, INSERT, UPDATE ON records_retention.files TO 'app_retention'@'%';
 GRANT SELECT, INSERT, UPDATE ON records_retention.file_versions TO 'app_retention'@'%';

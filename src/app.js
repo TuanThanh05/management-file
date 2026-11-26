@@ -11,6 +11,8 @@ import { errorHandler, notFoundHandler } from './core/errors.js';
 import { originCheck } from './middlewares/originCheck.js';
 import { authRoutes } from './modules/auth/routes.js';
 import { adminRoutes } from './modules/admin/routes.js';
+import { catalogRoutes } from './modules/catalog/routes.js';
+import { labelRoutes } from './modules/labels/routes.js';
 
 // Tạo ứng dụng Express với middleware bảo mật và các nhóm API
 export function createApp() {
@@ -41,6 +43,8 @@ export function createApp() {
 
   app.use('/api/auth', authRoutes);
   app.use('/api/admin', adminRoutes);
+  app.use('/api/catalog', catalogRoutes);
+  app.use('/api/labels', labelRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

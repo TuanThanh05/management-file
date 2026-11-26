@@ -1,4 +1,4 @@
-# API Auth và Admin – dùng với REST Client (VS Code) hoặc chép sang Postman.
+# API Auth, Admin, Catalog, Labels – dùng với REST Client (VS Code) hoặc chép sang Postman.
 # Cookie rr_session được trình duyệt/REST Client tự lưu sau khi đăng nhập.
 # Frontend React: fetch(..., { credentials: 'include' }) hoặc axios withCredentials: true.
 
@@ -99,3 +99,119 @@ PATCH {{base}}/admin/settings/DISPOSAL_WAIT_DAYS
 Content-Type: application/json
 
 { "value": 3 }
+
+# ==================== CATALOG (ghi: Cán bộ lưu trữ; đọc: ai cần chọn loại tài liệu) ====================
+
+### Danh sách nhóm hồ sơ
+GET {{base}}/catalog/groups
+
+### Thêm nhóm (BM14)
+POST {{base}}/catalog/groups
+Content-Type: application/json
+
+{ "code": "KETOAN", "name": "Hồ sơ kế toán", "description": "Chứng từ, sổ sách kế toán" }
+
+### Sửa nhóm – chỉ tên, mô tả
+PATCH {{base}}/catalog/groups/KETOAN
+Content-Type: application/json
+
+{ "name": "Hồ sơ tài chính – kế toán" }
+
+### Ngừng sử dụng nhóm (khi không còn nhãn hiệu lực) / mở lại
+POST {{base}}/catalog/groups/KETOAN/deactivate
+###
+POST {{base}}/catalog/groups/KETOAN/activate
+
+### Danh sách loại tài liệu – usable=true: dùng được để tạo hồ sơ
+GET {{base}}/catalog/document-types?groupCode=KETOAN&usable=true
+
+### Thêm loại tài liệu (BM15) – chưa có nhãn nên chưa dùng được
+POST {{base}}/catalog/document-types
+Content-Type: application/json
+
+{ "code": "HD-GTGT", "name": "Hóa đơn GTGT", "groupCode": "KETOAN" }
+
+### Sửa loại – chỉ tên, mô tả
+PATCH {{base}}/catalog/document-types/HD-GTGT
+Content-Type: application/json
+
+{ "description": "Hóa đơn giá trị gia tăng đầu vào, đầu ra" }
+
+### Ngừng sử dụng / mở lại loại
+POST {{base}}/catalog/document-types/HD-GTGT/deactivate
+###
+POST {{base}}/catalog/document-types/HD-GTGT/activate
+
+# ==================== LABELS (lập: Cán bộ lưu trữ; duyệt: Giám đốc; xem: cả hai) ====================
+
+### Danh sách nhãn kèm phiên bản hiệu lực, loại đang gắn, đề xuất đang mở
+GET {{base}}/labels
+
+### Lịch sử mọi phiên bản của nhãn (kèm số hồ sơ đang gắn)
+GET {{base}}/labels/KT-10N
+
+### So sánh 2 phiên bản
+GET {{base}}/labels/KT-10N/compare?from=1&to=2
+
+### Lập đề xuất Tạo mới (BM02) – lưu Nháp
+# retentionType: FIXED | PERMANENT; startTrigger: ARCHIVED_DATE | FISCAL_YEAR_END | EVENT_END (cần eventName)
+POST {{base}}/labels/proposals
+Content-Type: application/json
+
+{
+  "proposalType": "CREATE",
+  "labelCode": "KT-10N",
+  "groupCode": "KETOAN",
+  "labelName": "Chứng từ kế toán 10 năm",
+  "legalBasis": "Điều 41 Luật Kế toán 2015; Điều 13 Nghị định 174/2016/NĐ-CP",
+  "retentionType": "FIXED",
+  "retentionYears": 10,
+  "startTrigger": "FISCAL_YEAR_END",
+  "warningDays": 30,
+  "containsPersonalData": false,
+  "documentTypeCodes": ["HD-GTGT"],
+  "proposalReason": "Thiết lập ban đầu cho chứng từ kế toán"
+}
+
+### Lập đề xuất Sửa nhãn (tạo phiên bản mới, bản cũ vẫn hiệu lực tới khi duyệt)
+POST {{base}}/labels/proposals
+Content-Type: application/json
+
+{
+  "proposalType": "UPDATE", "labelCode": "KT-10N", "labelName": "Chứng từ kế toán 10 năm",
+  "legalBasis": "Điều 41 Luật Kế toán 2015", "retentionType": "FIXED", "retentionYears": 10,
+  "startTrigger": "FISCAL_YEAR_END", "warningDays": 60, "containsPersonalData": false,
+  "documentTypeCodes": ["HD-GTGT"], "proposalReason": "Tăng số ngày cảnh báo lên 60"
+}
+
+### Lập đề xuất Ngừng áp dụng (khi không còn loại đang sử dụng gắn với nhãn)
+POST {{base}}/labels/proposals
+Content-Type: application/json
+
+{ "proposalType": "DEACTIVATE", "labelCode": "KT-10N", "proposalReason": "Không còn phát sinh loại tài liệu này" }
+
+### Danh sách đề xuất chờ duyệt (màn hình Giám đốc)
+GET {{base}}/labels/proposals?status=PENDING
+
+### Chi tiết đề xuất – kèm so sánh với bản hiệu lực (comparison) và cảnh báo rút ngắn (warnings)
+GET {{base}}/labels/proposals/1
+
+### Sửa đề xuất ở Nháp / Bị từ chối – gửi trường nào sửa trường đó
+PATCH {{base}}/labels/proposals/1
+Content-Type: application/json
+
+{ "retentionYears": 12, "documentTypeCodes": ["HD-GTGT"] }
+
+### Gửi Giám đốc / Rút lại
+POST {{base}}/labels/proposals/1/submit
+###
+POST {{base}}/labels/proposals/1/withdraw
+
+### Giám đốc phê duyệt – trả về typesWithoutLabel: loại bị bỏ ra khỏi bản mới (mất nhãn)
+POST {{base}}/labels/proposals/1/approve
+
+### Giám đốc từ chối – lý do 10–500 ký tự
+POST {{base}}/labels/proposals/1/reject
+Content-Type: application/json
+
+{ "comment": "Căn cứ pháp lý chưa đúng điều khoản" }
