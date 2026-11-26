@@ -1,5 +1,6 @@
 import { ZodError } from 'zod';
 import { logger } from './logger.js';
+import { translateDbMessage } from './dbMessages.js';
 
 // Lỗi nghiệp vụ trả về client dạng { error: { code, message, details } }
 export class AppError extends Error {
@@ -34,7 +35,7 @@ export function toAppError(err) {
     return AppError.unprocessable('Dữ liệu gửi lên không hợp lệ',
       err.issues.map((i) => ({ field: i.path.join('.'), message: i.message })));
   }
-  if (err?.sqlState === '45000') return new AppError(409, 'BUSINESS_RULE_VIOLATION', err.sqlMessage);
+  if (err?.sqlState === '45000') return new AppError(409, 'BUSINESS_RULE_VIOLATION', translateDbMessage(err.sqlMessage));
 
   switch (err?.errno) {
     case ER.DUP_ENTRY:

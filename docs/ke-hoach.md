@@ -30,7 +30,7 @@ Lý do (căn cứ từ `records_retention.sql`):
 | Tải file | multer (lưu tạm trong RAM) + file-type (nhận định dạng theo magic bytes) |
 | Mã hóa file | `node:crypto` AES-256-GCM, mã hóa phong bì (khóa chủ đặt trong `.env`) |
 | Tác vụ định kỳ | node-cron + `GET_LOCK` của MySQL |
-| Biên bản PDF | pdfkit (nhúng font TTF tiếng Việt) |
+| Biên bản PDF | pdfmake (hỗ trợ phông tiếng Việt) – theo bảng nền tảng kỹ thuật của báo cáo |
 | Xuất Excel | exceljs |
 | Bảo mật HTTP | helmet, cors, express-rate-limit |
 | Ghi log ứng dụng | pino |
@@ -101,7 +101,7 @@ P0 = bắt buộc để demo luồng chính. P1 = làm nếu còn thời gian.
 |---|---|---|---|
 | 1 | Tạo repo, cấu hình, pool CSDL, `withTx`, map lỗi, `init-admin` | Chạy được script SQL, tạo được quản trị viên | [x] 26/11 |
 | 2 | Auth + middleware phân quyền theo scope | Đăng nhập, khóa khi sai nhiều lần, đổi mật khẩu có test | [x] 26/11 |
-| 3 | Admin (phòng ban, người dùng, vai trò, tham số) | Tạo đủ 5 vai trò để test các ngày sau | [ ] |
+| 3 | Admin (phòng ban, người dùng, vai trò, tham số) | Tạo đủ 5 vai trò để test các ngày sau | [x] 26/11 |
 | 4 | Catalog + Labels (đề xuất → duyệt) | Loại tài liệu có nhãn đang hiệu lực | [ ] |
 | 5 | Records + Files (mã hóa, giải mã) | Tạo hồ sơ, tải file lên rồi tải về đúng sha256 | [ ] |
 | 6 | Gửi/duyệt lưu trữ, tính hạn, tra cứu, đánh dấu hết hiệu lực | Hồ sơ ARCHIVED có `expiry_date` | [ ] |
@@ -143,3 +143,5 @@ P0 = bắt buộc để demo luồng chính. P1 = làm nếu còn thời gian.
 | 26/11/2026 | Chốt đặc tả ngày 2 theo báo cáo (5.1 mục 1–2, 7.1 mục 1): JWT trong cookie httpOnly, mật khẩu mới 12–64 ký tự, thông báo lỗi đăng nhập dùng chung | Bám đúng báo cáo, tránh tự đặt quy tắc khác |
 | 26/11/2026 | Xong ngày 2. Quy ước: chú thích mỗi hàm/khối một dòng; thêm `docs/danh-sach-ham.md` (Tên hàm, File, Làm gì, Người viết, Ngày) và `docs/api.http` | Theo yêu cầu của nhóm; frontend có sẵn API để ghép |
 | 26/11/2026 | Thêm `SET NAMES utf8mb4;` vào đầu `database/records_retention.sql` | MySQL trong Docker nạp script bằng client latin1, tiếng Việt bị lỗi font ("NhÃ¢n viÃªn") |
+| 26/11/2026 | Biên bản PDF dùng pdfmake thay cho pdfkit | Bảng nền tảng kỹ thuật trong báo cáo ghi pdfmake |
+| 26/11/2026 | Xong ngày 3. Bổ sung ngoài báo cáo: mở lại phòng ban đã ngừng hoạt động; Trưởng phòng phải thu hồi vai trò trước khi chuyển phòng; mở khóa bị chặn nếu làm phòng có 2 Trưởng phòng hoặc có 2 Giám đốc; tạo tài khoản kèm vai trò cũng báo Giám đốc | Nhóm chốt; giữ đúng quy tắc "1 Trưởng phòng/phòng, 1 Giám đốc" của 5.5 chức năng 4 |

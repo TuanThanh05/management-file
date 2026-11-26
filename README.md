@@ -60,6 +60,7 @@ Yêu cầu: Node.js ≥ 22, MySQL 8.0.22+ (khuyến nghị 8.4 LTS).
 - Không ghi mật khẩu, token, khóa hay nội dung file vào log lẫn vào `details` của nhật ký.
 - API cần đăng nhập: `authenticate()` rồi `authorize('MÃ_QUYỀN')`; lọc dữ liệu theo phạm vi bằng `scopeFilter(req, { departmentColumn, ownerColumn })`.
 - Giá trị 0/1 lấy từ biểu thức SQL có thể về dạng chuỗi `"0"` (do `bigNumberStrings`), không dùng `Boolean(...)` để đổi kiểu.
+- Khóa dòng bằng `FOR UPDATE OF <bảng>` khi câu SELECT có JOIN: tài khoản ứng dụng chỉ có quyền đọc các bảng danh mục (`roles`...), khóa cả câu sẽ bị từ chối.
 - Chú thích: mỗi hàm/khối chỉ một dòng tóm tắt. Thêm hoặc sửa hàm thì cập nhật `docs/danh-sach-ham.md`.
 - Thử API: `docs/api.http`. Frontend gọi API với `credentials: 'include'` (phiên nằm trong cookie httpOnly).
 
@@ -71,7 +72,7 @@ docs/          ke-hoach.md, danh-sach-ham.md, api.http
 scripts/       init-admin.js
 src/
   config/      env.js (kiểm tra .env bằng zod), database.js (pool)
-  core/        tx.js, errors.js, codes.js, time.js, logger.js, settings.js, password.js, session.js
+  core/        tx.js, errors.js, codes.js, time.js, logger.js, settings.js, password.js, session.js, notify.js, dbMessages.js
   middlewares/ authenticate, authorize, validate, originCheck, rateLimit
   modules/     mỗi module: routes, controller, service, repo, schema
   jobs/        tác vụ định kỳ

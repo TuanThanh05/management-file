@@ -10,6 +10,7 @@ import { logger } from './core/logger.js';
 import { errorHandler, notFoundHandler } from './core/errors.js';
 import { originCheck } from './middlewares/originCheck.js';
 import { authRoutes } from './modules/auth/routes.js';
+import { adminRoutes } from './modules/admin/routes.js';
 
 // Tạo ứng dụng Express với middleware bảo mật và các nhóm API
 export function createApp() {
@@ -39,6 +40,7 @@ export function createApp() {
   });
 
   app.use('/api/auth', authRoutes);
+  app.use('/api/admin', adminRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

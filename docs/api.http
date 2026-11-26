@@ -1,4 +1,4 @@
-# API Auth – dùng với REST Client (VS Code) hoặc chép sang Postman.
+# API Auth và Admin – dùng với REST Client (VS Code) hoặc chép sang Postman.
 # Cookie rr_session được trình duyệt/REST Client tự lưu sau khi đăng nhập.
 # Frontend React: fetch(..., { credentials: 'include' }) hoặc axios withCredentials: true.
 
@@ -32,3 +32,70 @@ Content-Type: application/json
 
 ### Đăng xuất – 204
 POST {{base}}/auth/logout
+
+# ==================== ADMIN (chỉ Quản trị hệ thống) ====================
+# Lỗi chung: 401 chưa đăng nhập | 403 không có quyền hoặc thao tác lên chính mình | 409 vi phạm quy tắc | 422 dữ liệu sai
+
+### Danh sách phòng ban (kèm Trưởng phòng, số tài khoản hoạt động)
+GET {{base}}/admin/departments
+
+### Thêm phòng ban (BM20) – mã tự viết hoa, không sửa được
+POST {{base}}/admin/departments
+Content-Type: application/json
+
+{ "code": "KT", "name": "Phòng Kế toán", "parentCode": null }
+
+### Sửa phòng ban – chỉ tên và phòng ban cha
+PATCH {{base}}/admin/departments/KT
+Content-Type: application/json
+
+{ "name": "Phòng Tài chính – Kế toán" }
+
+### Ngừng hoạt động (chỉ khi không còn tài khoản hoạt động)
+POST {{base}}/admin/departments/KT/deactivate
+
+### Mở lại phòng ban
+POST {{base}}/admin/departments/KT/activate
+
+### Danh sách tài khoản: lọc q, departmentCode, status, role; phân trang page, pageSize
+GET {{base}}/admin/users?departmentCode=KT&role=EMPLOYEE&page=1&pageSize=20
+
+### Chi tiết tài khoản
+GET {{base}}/admin/users/2
+
+### Tạo tài khoản (BM21) – 201: { user, tempPassword } (mật khẩu tạm chỉ trả về một lần)
+POST {{base}}/admin/users
+Content-Type: application/json
+
+{ "email": "nv.a@congty.vn", "fullName": "Nguyễn Văn A", "departmentCode": "KT", "roles": ["EMPLOYEE"] }
+
+### Sửa họ tên / phòng ban (Trưởng phòng phải thu hồi vai trò trước khi chuyển phòng)
+PATCH {{base}}/admin/users/2
+Content-Type: application/json
+
+{ "fullName": "Nguyễn Văn An" }
+
+### Khóa tài khoản (hủy mọi phiên)
+POST {{base}}/admin/users/2/lock
+
+### Mở khóa tài khoản
+POST {{base}}/admin/users/2/unlock
+
+### Đặt lại mật khẩu – 200: { tempPassword }
+POST {{base}}/admin/users/2/reset-password
+
+### Đặt lại vai trò (BM21 phần B) – gửi đủ danh sách vai trò mới; hủy phiên của người bị đổi
+# Mã vai trò: EMPLOYEE, DEPARTMENT_HEAD, RECORDS_OFFICER, DIRECTOR, SYSTEM_ADMIN
+PUT {{base}}/admin/users/2/roles
+Content-Type: application/json
+
+{ "roles": ["EMPLOYEE", "DEPARTMENT_HEAD"] }
+
+### Danh sách tham số (BM22)
+GET {{base}}/admin/settings
+
+### Sửa tham số – kiểm tra theo kiểu và khoảng cho phép
+PATCH {{base}}/admin/settings/DISPOSAL_WAIT_DAYS
+Content-Type: application/json
+
+{ "value": 3 }

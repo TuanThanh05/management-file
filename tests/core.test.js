@@ -66,7 +66,7 @@ describe('Map lỗi CSDL', () => {
     const appErr = toAppError(err);
     expect(appErr.status).toBe(409);
     expect(appErr.code).toBe('BUSINESS_RULE_VIOLATION');
-    expect(appErr.message).toBe('Khong duoc sua ma phong ban');
+    expect(appErr.message).toBe('Không được sửa mã phòng ban');
   });
 
   it('trùng khóa UNIQUE -> 409 DUPLICATE', async () => {
