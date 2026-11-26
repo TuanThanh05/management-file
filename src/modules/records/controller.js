@@ -66,7 +66,7 @@ export async function searchRecords(req, res) {
 
 // GET /api/records/approvals
 export async function listApprovals(req, res) {
-  res.json({ items: await workflow.listApprovals(req.user) });
+  res.json(await workflow.listApprovals(req.user));
 }
 
 // POST /api/records/:code/submit

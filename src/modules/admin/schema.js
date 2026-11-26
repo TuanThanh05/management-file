@@ -51,3 +51,10 @@ export const listUsersQuery = z.object({
 
 // BM22 - Giá trị tham số mới (kiểm tra theo kiểu ở service)
 export const updateSettingSchema = z.strictObject({ value: z.union([z.string(), z.number()]).transform((v) => String(v).trim()) });
+
+// Tham số tác vụ định kỳ: tên tác vụ chạy tay được; lọc lịch sử chạy
+export const jobParam = z.object({ job: z.enum(['expiry-scan']) });
+export const jobRunsQuery = z.object({
+  jobName: z.enum(['EXPIRY_SCAN', 'DISPOSAL_EXECUTION', 'BACKUP']).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+});

@@ -183,6 +183,60 @@ Cập nhật mỗi khi thêm hoặc sửa hàm. Quy ước chú thích trong cod
 | `creatorIsDepartmentHead`, `departmentHeadOf` | `repo.js` | Người tạo có đang là Trưởng phòng; Trưởng phòng hiện tại của phòng | TuanThanh05 | 26/11/2026 |
 | `setRecordStatus`, `markEnded` | `repo.js` | Chuyển trạng thái hồ sơ; ghi hết hiệu lực nghiệp vụ | TuanThanh05 | 26/11/2026 |
 | `listPendingApprovals`, `searchRecords` | `repo.js` | Truy vấn hàng chờ duyệt; truy vấn tra cứu có lọc, sắp xếp, phân trang | TuanThanh05 | 26/11/2026 |
+| `departmentHeads` | `notify.js` | Trưởng phòng đang hoạt động của các phòng ban | TuanThanh05 | 26/11/2026 |
+| `notifyDepartmentHead` | `notify.js` | Báo Trưởng phòng; phòng chưa có Trưởng phòng thì báo Quản trị hệ thống | TuanThanh05 | 26/11/2026 |
+| `timeVN`, `formatDateVN` | `time.js` | Giờ:phút theo giờ VN; đổi ngày sang dd/mm/yyyy | TuanThanh05 | 26/11/2026 |
+| `uploadSingle(field, { optional })` | `middlewares/upload.js` | Thêm chế độ không bắt buộc file, nhận kèm trường văn bản (form phong tỏa) | TuanThanh05 | 26/11/2026 |
+| `diffYMD`, `daysBetween` | `records/retention.js` | Khoảng cách năm/tháng/ngày (BM03); số ngày giữa hai ngày | TuanThanh05 | 26/11/2026 |
+| `listPendingExtensions` | `records/repo.js` | Đề xuất gia hạn chờ Trưởng phòng duyệt cho hàng chờ duyệt | TuanThanh05 | 26/11/2026 |
+| `listJobRuns`, `runJobNow` | `admin/service.js` | Lịch sử chạy tác vụ; Quản trị viên chạy tay tác vụ | TuanThanh05 | 26/11/2026 |
+
+## Tác vụ định kỳ – `src/jobs` (báo cáo QT3.1 nhánh B)
+
+| Tên hàm | File | Làm gì | Người viết | Ngày |
+|---|---|---|---|---|
+| `runJob` | `runner.js` | Chạy tác vụ có khóa `GET_LOCK`, ghi `job_runs` (SUCCESS / PARTIAL / FAILED / SKIPPED) | TuanThanh05 | 26/11/2026 |
+| `runExpiryScan` | `expiryScan.js` | Quét hạn: đến hạn → Hết hạn, còn ≤ N ngày → cảnh báo một lần, gửi thông báo tổng hợp | TuanThanh05 | 26/11/2026 |
+| `dueRecords`, `warnRecords`, `eachRecord` | `expiryScan.js` | Lấy hồ sơ đến hạn / cần cảnh báo; xử lý từng hồ sơ trong giao dịch riêng | TuanThanh05 | 26/11/2026 |
+| `tick`, `startScheduler` | `scheduler.js` | Mỗi phút: qua giờ `JOB_RUN_TIME` mà hôm nay chưa chạy thì chạy (chạy bù) | TuanThanh05 | 26/11/2026 |
+
+## Module Retention – `src/modules/retention` (báo cáo 5.2 CN9, 5.3 CN10–11)
+
+| Tên hàm | File | Làm gì | Người viết | Ngày |
+|---|---|---|---|---|
+| `expiryAlerts` | `service.js` | Cảnh báo hạn của phòng: sắp hết hạn, đã hết hạn, chưa xác định | TuanThanh05 | 26/11/2026 |
+| `listExpired` | `service.js` | Rà soát hồ sơ Hết hạn mọi phòng: số ngày quá hạn, phong tỏa, gia hạn chờ, lý do bị loại | TuanThanh05 | 26/11/2026 |
+| `setEligibility`, `eligibilityProblem` | `service.js` | Đánh / bỏ dấu đủ điều kiện hủy nhiều hồ sơ; có hồ sơ sai thì không đổi hồ sơ nào | TuanThanh05 | 26/11/2026 |
+| `alertRows`, `expiredRows`, `lockForEligibility`, `setEligible` | `repo.js` | Truy vấn và cập nhật cho các chức năng trên | TuanThanh05 | 26/11/2026 |
+
+## Module Extensions – `src/modules/extensions` (báo cáo 5.1 CN14, 5.2 CN10–11, 5.3 CN12; BM03)
+
+| Tên hàm | File | Làm gì | Người viết | Ngày |
+|---|---|---|---|---|
+| `createExtension` | `service.js` | Nhân viên lập đề xuất gia hạn: kiểm tra trạng thái, đợt hủy, đề xuất trùng, giới hạn ngày | TuanThanh05 | 26/11/2026 |
+| `approveExtension` | `service.js` | Trưởng phòng duyệt: hồ sơ Hết hạn → Lưu trữ với hạn mới, xóa dấu đã cảnh báo | TuanThanh05 | 26/11/2026 |
+| `rejectExtension` | `service.js` | Trưởng phòng từ chối kèm lý do; báo người đề xuất và Cán bộ lưu trữ | TuanThanh05 | 26/11/2026 |
+| `listExtensions`, `getExtension` | `service.js` | Theo dõi đề xuất gia hạn theo phạm vi | TuanThanh05 | 26/11/2026 |
+| `lockForReview`, `toDto` | `service.js` | Kiểm tra người duyệt; dạng trả về BM03 | TuanThanh05 | 26/11/2026 |
+| `findExtension`, `recordBlockers`, `insertExtension`, `reviewExtension`, `applyExtension`, `listExtensions` | `repo.js` | Truy vấn bảng `extension_requests` và cập nhật hồ sơ khi duyệt | TuanThanh05 | 26/11/2026 |
+
+## Module Holds – `src/modules/holds` (báo cáo 5.4 CN11–13; BM04)
+
+| Tên hàm | File | Làm gì | Người viết | Ngày |
+|---|---|---|---|---|
+| `placeHold` | `service.js` | Giám đốc đặt phong tỏa nhiều hồ sơ, kèm tệp căn cứ mã hóa (tùy chọn) | TuanThanh05 | 26/11/2026 |
+| `releaseHold` | `service.js` | Gỡ phong tỏa theo cả lệnh hoặc từng hồ sơ | TuanThanh05 | 26/11/2026 |
+| `getHold`, `listHolds` | `service.js` | Chi tiết, tra cứu lệnh phong tỏa; đánh dấu lệnh quá ngày dự kiến gỡ | TuanThanh05 | 26/11/2026 |
+| `getEvidence` | `service.js` | Giải mã, kiểm tra toàn vẹn và trả tệp căn cứ | TuanThanh05 | 26/11/2026 |
+| `notifyHoldChange` | `service.js` | Báo Cán bộ lưu trữ và Trưởng phòng các phòng liên quan | TuanThanh05 | 26/11/2026 |
+| `insertHold`, `lockRecords`, `addHoldRecords`, `findHold`, `holdRecords`, `releaseHoldRecord`, `listHolds` | `repo.js` | Truy vấn bảng `legal_holds`, `legal_hold_records` | TuanThanh05 | 26/11/2026 |
+
+## Module Notifications – `src/modules/notifications` (báo cáo 5.1 CN3)
+
+| Tên hàm | File | Làm gì | Người viết | Ngày |
+|---|---|---|---|---|
+| `listNotifications`, `unreadCount` | `service.js` | Thông báo của tôi, số chưa đọc | TuanThanh05 | 26/11/2026 |
+| `markRead`, `markAllRead` | `service.js` | Đánh dấu đã đọc một / tất cả | TuanThanh05 | 26/11/2026 |
 
 ## Script – `scripts`
 

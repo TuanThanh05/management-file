@@ -30,3 +30,7 @@ adminRoutes.put('/users/:id/roles', authorize('ADMIN.ROLES'), validate({ params:
 const settings = authorize('ADMIN.SETTINGS');
 adminRoutes.get('/settings', settings, ctrl.listSettings);
 adminRoutes.patch('/settings/:key', settings, validate({ params: s.keyParam, body: s.updateSettingSchema }), ctrl.updateSetting);
+
+const jobs = authorize('ADMIN.JOBS');
+adminRoutes.get('/jobs/runs', jobs, validate({ query: s.jobRunsQuery }), ctrl.listJobRuns);
+adminRoutes.post('/jobs/:job/run', jobs, validate({ params: s.jobParam }), ctrl.runJobNow);

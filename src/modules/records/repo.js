@@ -236,3 +236,14 @@ export async function searchRecords(conn, { scopeSql, scopeParams, filters, sort
     [...params, pageSize, (page - 1) * pageSize]);
   return { total: Number(total), rows };
 }
+
+// Đề xuất gia hạn chờ Trưởng phòng duyệt (không gồm đề xuất của chính người duyệt), chờ lâu nhất trước
+export async function listPendingExtensions(conn, departmentId, excludeUserId) {
+  const [rows] = await conn.query(
+    `SELECT e.code, e.old_expiry_date, e.new_expiry_date, e.requested_at, r.code AS record_code, u.email AS requested_by_email,
+            u.full_name AS requested_by_name,
+            DATEDIFF(DATE(UTC_TIMESTAMP() + INTERVAL 7 HOUR), DATE(e.requested_at + INTERVAL 7 HOUR)) AS waiting_days
+     FROM extension_requests e JOIN records r ON r.id = e.record_id JOIN users u ON u.id = e.requested_by
+     WHERE e.status = 'PENDING' AND r.department_id = ? AND e.requested_by <> ? ORDER BY e.requested_at`, [departmentId, excludeUserId]);
+  return rows;
+}

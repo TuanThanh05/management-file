@@ -5,6 +5,7 @@ import { notifyRole, notifyUsers } from '../../core/notify.js';
 import { hashPassword, generateTempPassword } from '../../core/password.js';
 import { revokeAllSessions } from '../auth/repo.js';
 import * as repo from './repo.js';
+import { runExpiryScan } from '../../jobs/expiryScan.js';
 
 const ROLE_NAMES = {
   EMPLOYEE: 'Nhân viên', DEPARTMENT_HEAD: 'Trưởng phòng', RECORDS_OFFICER: 'Cán bộ lưu trữ',
@@ -306,4 +307,33 @@ export async function updateSetting(actor, key, { value }) {
       `SELECT s.*, u.email AS updated_by_email FROM system_settings s LEFT JOIN users u ON u.id = s.updated_by WHERE s.setting_key = ?`, [key]);
     return toSetting(row);
   });
+}
+
+// ---------- Tác vụ định kỳ (5.5, theo dõi job_runs) ----------
+
+const RUNNERS = { 'expiry-scan': runExpiryScan };
+
+// Lịch sử chạy tác vụ, mới nhất trước, 20 dòng mỗi trang
+export async function listJobRuns({ jobName, page }) {
+  const where = jobName ? 'WHERE j.job_name = ?' : '';
+  const params = jobName ? [jobName] : [];
+  const [[{ total }]] = await pool.query(`SELECT COUNT(*) AS total FROM job_runs j ${where}`, params);
+  const [rows] = await pool.query(
+    `SELECT j.*, u.email AS triggered_by_email FROM job_runs j LEFT JOIN users u ON u.id = j.triggered_by ${where}
+     ORDER BY j.id DESC LIMIT 20 OFFSET ?`, [...params, (page - 1) * 20]);
+  return {
+    page, pageSize: 20, total: Number(total),
+    items: rows.map((r) => ({
+      id: String(r.id), jobName: r.job_name, runType: r.run_type, triggeredBy: r.triggered_by_email, startedAt: r.started_at,
+      finishedAt: r.finished_at, result: r.result, processedCount: r.processed_count, errorCount: r.error_count, note: r.note,
+    })),
+  };
+}
+
+// Chạy tay một tác vụ (Quản trị hệ thống); ghi nhật ký người bấm chạy
+export async function runJobNow(actor, job) {
+  const out = await RUNNERS[job]({ runType: 'MANUAL', triggeredBy: actor.userId });
+  await withTx(actor, ({ audit }) => audit({ action: 'JOB_RUN_MANUAL', objectType: 'JOB', objectCode: job,
+    result: out.result === 'FAILED' ? 'FAILURE' : 'SUCCESS', details: { runId: out.id, result: out.result, processed: out.processed, errors: out.errors } }));
+  return { runId: out.id, result: out.result, processedCount: out.processed, errorCount: out.errors, note: out.note ?? null };
 }

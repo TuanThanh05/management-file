@@ -14,6 +14,10 @@ import { adminRoutes } from './modules/admin/routes.js';
 import { catalogRoutes } from './modules/catalog/routes.js';
 import { labelRoutes } from './modules/labels/routes.js';
 import { recordRoutes } from './modules/records/routes.js';
+import { retentionRoutes } from './modules/retention/routes.js';
+import { extensionRoutes } from './modules/extensions/routes.js';
+import { holdRoutes } from './modules/holds/routes.js';
+import { notificationRoutes } from './modules/notifications/routes.js';
 
 // Tạo ứng dụng Express với middleware bảo mật và các nhóm API
 export function createApp() {
@@ -47,6 +51,10 @@ export function createApp() {
   app.use('/api/catalog', catalogRoutes);
   app.use('/api/labels', labelRoutes);
   app.use('/api/records', recordRoutes);
+  app.use('/api/retention', retentionRoutes);
+  app.use('/api/extensions', extensionRoutes);
+  app.use('/api/holds', holdRoutes);
+  app.use('/api/notifications', notificationRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

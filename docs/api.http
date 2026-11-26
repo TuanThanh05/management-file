@@ -304,3 +304,74 @@ POST {{base}}/records/HS-KT-2026-000001/mark-ended
 Content-Type: application/json
 
 { "eventEndDate": "2026-11-20", "eventNote": "Thanh lý hợp đồng" }
+
+### ---------- Ngày 7: quét hạn, cảnh báo, gia hạn, phong tỏa, thông báo ----------
+
+### Quản trị viên chạy tay job quét hạn
+POST {{base}}/admin/jobs/expiry-scan/run
+
+### Lịch sử chạy tác vụ
+GET {{base}}/admin/jobs/runs?jobName=EXPIRY_SCAN&page=1
+
+### Trưởng phòng: cảnh báo hạn của phòng (upcoming / expired / undetermined)
+GET {{base}}/retention/alerts
+
+### Cán bộ lưu trữ: rà soát hồ sơ hết hạn mọi phòng
+GET {{base}}/retention/expired?departmentCode=KT&expiryDateFrom=2020-01-01&page=1
+
+### Cán bộ lưu trữ: đánh dấu đủ điều kiện hủy (eligible=false để bỏ dấu)
+POST {{base}}/retention/eligibility
+Content-Type: application/json
+
+{ "recordCodes": ["HS-KT-2026-000001"], "eligible": true }
+
+### Nhân viên: lập đề xuất gia hạn (BM03)
+POST {{base}}/extensions
+Content-Type: application/json
+
+{ "recordCode": "HS-KT-2026-000001", "newExpiryDate": "2028-12-31", "reason": "Còn cần đối chiếu thanh tra thuế" }
+
+### Theo dõi đề xuất gia hạn
+GET {{base}}/extensions?status=PENDING&page=1
+
+### Trưởng phòng duyệt gia hạn
+POST {{base}}/extensions/GH-2026-0001/approve
+Content-Type: application/json
+
+{ "comment": "Đồng ý" }
+
+### Trưởng phòng từ chối gia hạn (lý do 10–500 ký tự)
+POST {{base}}/extensions/GH-2026-0001/reject
+Content-Type: application/json
+
+{ "comment": "Hồ sơ đã đối chiếu xong, không cần giữ" }
+
+### Giám đốc đặt phong tỏa (JSON; muốn kèm tệp căn cứ thì gửi multipart, trường file "evidence", recordCodes cách nhau dấu phẩy)
+POST {{base}}/holds
+Content-Type: application/json
+
+{ "recordCodes": ["HS-KT-2026-000001"], "reason": "Thanh tra thuế năm 2026", "legalBasis": "QĐ 12/QĐ-TTr", "expectedReleaseDate": "2027-03-31" }
+
+### Tra cứu lệnh phong tỏa (status=ACTIVE|RELEASED, overdue=true: quá ngày dự kiến gỡ)
+GET {{base}}/holds?status=ACTIVE
+
+### Gỡ phong tỏa cả lệnh (thêm recordCodes để gỡ từng hồ sơ)
+POST {{base}}/holds/PT-2026-0001/release
+Content-Type: application/json
+
+{ "reason": "Kết thúc đợt thanh tra thuế" }
+
+### Tải tệp căn cứ của lệnh
+GET {{base}}/holds/PT-2026-0001/evidence
+
+### Thông báo của tôi (unread=true: chỉ chưa đọc)
+GET {{base}}/notifications?unread=true
+
+### Số thông báo chưa đọc
+GET {{base}}/notifications/unread-count
+
+### Đánh dấu đã đọc
+POST {{base}}/notifications/1/read
+
+### Đánh dấu tất cả đã đọc
+POST {{base}}/notifications/read-all

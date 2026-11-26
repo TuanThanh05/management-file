@@ -9,3 +9,14 @@ export function todayVN(now = new Date()) {
 export function yearVN(now = new Date()) {
   return Number(todayVN(now).slice(0, 4));
 }
+
+// Giờ:phút hiện tại theo giờ Việt Nam, dạng 'HH:MM'
+export function timeVN(now = new Date()) {
+  return new Date(now.getTime() + VN_OFFSET_MS).toISOString().slice(11, 16);
+}
+
+// Đổi 'YYYY-MM-DD' sang 'dd/mm/yyyy' để hiển thị trong thông báo
+export function formatDateVN(dateStr) {
+  const [y, m, d] = dateStr.split('-');
+  return `${d}/${m}/${y}`;
+}

@@ -25,3 +25,20 @@ export function computeExpiry(label, { archivedDate, documentDate, eventEndDate,
   if (!startDate) return { kind: 'UNDETERMINED', startDate: null, expiryDate: null };
   return { kind: 'DATE', startDate, expiryDate: addYears(startDate, label.retentionYears) };
 }
+
+// Khoảng cách giữa hai ngày 'YYYY-MM-DD' theo năm, tháng, ngày (to ≥ from), dùng cho "thời gian gia hạn thêm" của BM03
+export function diffYMD(from, to) {
+  const [y1, m1, d1] = from.split('-').map(Number);
+  const [y2, m2, d2] = to.split('-').map(Number);
+  let years = y2 - y1;
+  let months = m2 - m1;
+  let days = d2 - d1;
+  if (days < 0) { months -= 1; days += new Date(Date.UTC(y2, m2 - 1, 0)).getUTCDate(); }
+  if (months < 0) { years -= 1; months += 12; }
+  return { years, months, days };
+}
+
+// Số ngày từ a đến b (b − a), hai ngày dạng 'YYYY-MM-DD'
+export function daysBetween(a, b) {
+  return Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
+}
