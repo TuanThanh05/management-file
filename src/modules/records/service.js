@@ -5,13 +5,15 @@ import { pool } from '../../config/database.js';
 import { withTx } from '../../core/tx.js';
 import { AppError } from '../../core/errors.js';
 import { nextCode } from '../../core/codes.js';
-import { todayVN } from '../../core/time.js';
+import { todayVN, formatDateVN, formatDateTimeVN } from '../../core/time.js';
 import { getSettings } from '../../core/settings.js';
 import { notifyRole } from '../../core/notify.js';
 import { logger } from '../../core/logger.js';
 import { writeBlob, readBlob, deleteBlob } from '../../core/storage.js';
 import { encryptFile, decryptFile, IntegrityError } from '../../crypto/envelope.js';
 import { computeExpiry } from './retention.js';
+import { exportTable } from '../../core/exporter.js';
+import { RECORD_STATUS_VN, VALIDITY_VN } from '../../core/labels.js';
 import * as repo from './repo.js';
 
 const FILE_AREA = 'files';
@@ -358,4 +360,38 @@ export async function searchRecords(user, scope, q) {
       label: r.label_code ? { code: r.label_code, versionNo: r.label_version_no } : null,
     })),
   };
+}
+
+const EXPORT_LIMIT = 5000;
+
+// Xuất kết quả tra cứu ra XLSX / PDF (5.2 CN17, 5.3 CN2): tối đa 5.000 dòng, không chứa nội dung file; ghi nhật ký điều kiện và số dòng
+export async function exportRecords(actor, user, scope, { format, ...q }) {
+  const scopeSql = scope === 'ALL' ? '1 = 1' : 'r.department_id = ?';
+  const scopeParams = scope === 'ALL' ? [] : [user.departmentId];
+  const { total, rows } = await repo.searchRecords(pool, {
+    scopeSql, scopeParams, page: 1, pageSize: EXPORT_LIMIT, sort: { by: q.sortBy, dir: q.sortDir },
+    filters: { ...q, mineUserId: q.mine ? user.id : null },
+  });
+  if (total > EXPORT_LIMIT) {
+    throw AppError.unprocessable('Quá nhiều dòng', [{ field: 'filters', message: `Kết quả có ${total} hồ sơ, vượt ${EXPORT_LIMIT} dòng; thu hẹp điều kiện lọc` }]);
+  }
+  const expiryText = (r) => (!r.label_version_id ? '' : r.retention_type === 'PERMANENT' ? 'Vĩnh viễn' : r.expiry_date ? formatDateVN(r.expiry_date) : 'Chưa xác định');
+  const out = await exportTable(format, {
+    title: 'DANH SÁCH HỒ SƠ',
+    meta: [['Người xuất', `${user.fullName} (${user.email})`], ['Thời điểm', formatDateTimeVN(new Date())], ['Số hồ sơ', total],
+      ['Phạm vi', scope === 'ALL' ? 'Toàn doanh nghiệp' : `Phòng ${user.department?.code ?? ''}`]],
+    columns: [
+      { header: 'Mã hồ sơ', key: 'code', width: 24, pdfWidth: 95 }, { header: 'Tiêu đề', key: 'title', width: 40 },
+      { header: 'Loại tài liệu', key: 'type', width: 24, pdfWidth: 90 }, { header: 'Nhóm', key: 'group', width: 20, pdfWidth: 70 },
+      { header: 'Trạng thái', key: 'status', width: 18, pdfWidth: 65 }, { header: 'Hiệu lực', key: 'validity', width: 14, pdfWidth: 55 },
+      { header: 'Ngày tài liệu', key: 'documentDate', width: 14, pdfWidth: 50 }, { header: 'Ngày hết hạn', key: 'expiry', width: 14, pdfWidth: 55 },
+      { header: 'Phong tỏa', key: 'hold', width: 10, pdfWidth: 40 },
+    ],
+    rows: rows.map((r) => ({
+      code: r.code, title: r.title, type: r.type_name, group: r.group_name, status: RECORD_STATUS_VN[r.status], validity: VALIDITY_VN[r.validity],
+      documentDate: formatDateVN(r.document_date), expiry: expiryText(r), hold: Number(r.is_on_hold) ? 'Có' : '',
+    })),
+  });
+  await withTx(actor, ({ audit }) => audit({ action: 'RECORD_EXPORT', objectType: 'RECORD_LIST', details: { format, rows: total, scope, filters: q } }));
+  return out;
 }

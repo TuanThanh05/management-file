@@ -26,6 +26,7 @@ Yêu cầu: Node.js ≥ 22, MySQL 8.0.22+ (khuyến nghị 8.4 LTS).
    cp .env.example .env      # sửa DB_PASSWORD nếu đã đổi mật khẩu app_retention
    node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"   # dán kết quả vào JWT_SECRET
    node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"   # dán kết quả vào MASTER_KEY_BASE64
+   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"   # chạy lại lần nữa, dán vào BACKUP_KEY_BASE64 (khác khóa chủ)
    ```
 4. Tạo quản trị viên đầu tiên (mật khẩu tạm in ra một lần):
    ```bash
@@ -37,6 +38,11 @@ Yêu cầu: Node.js ≥ 22, MySQL 8.0.22+ (khuyến nghị 8.4 LTS).
    npm test        # cần CSDL đã tạo ở bước 2 và 4
    ```
    Kiểm tra: `GET http://localhost:3000/api/health` → `{"status":"ok","db":"ok"}`
+   Tài liệu API (Swagger, chỉ khi không chạy production): `http://localhost:3000/api/docs`. Xuất file cho frontend: `npm run docs:openapi` → `docs/openapi.json`.
+
+**Cách C – chạy cả MySQL và backend bằng Docker:** điền `.env` như bước 3 rồi `docker compose --profile app up -d --build`. API ở cổng 3000 (chế độ production, không có `/api/docs`). Tạo quản trị viên: `docker compose exec api node scripts/init-admin.js --email ... --name ... --dept-code ... --dept-name ...`. Kho file và bản sao lưu nằm trong volume `api_storage`, `api_backups` (nên đổi `api_backups` sang ổ đĩa khác).
+
+**Đã có CSDL từ trước ngày 10?** Script SQL có thêm tài khoản sao lưu `backup_retention`. Tạo lại CSDL (`docker compose down -v && docker compose up -d`, hoặc nạp lại script), hoặc chạy riêng 3 lệnh `CREATE USER 'backup_retention'... / GRANT ...` ở cuối script bằng root.
 
 ## Khóa chủ MASTER_KEY_BASE64 – đọc kỹ
 
@@ -52,6 +58,19 @@ Yêu cầu: Node.js ≥ 22, MySQL 8.0.22+ (khuyến nghị 8.4 LTS).
 - Thực hiện hủy: mỗi phút kiểm tra, có đợt Đã phê duyệt đến giờ hẹn thì hủy (xóa khóa → xóa bản mã → lập biên bản PDF). Lần chạy có lỗi thì 15 phút sau mới thử lại.
 - Test nhanh: Quản trị viên gọi `POST /api/admin/jobs/expiry-scan/run` hoặc `POST /api/admin/jobs/disposal-execution/run`, xem kết quả ở `GET /api/admin/jobs/runs`.
 - Biên bản lưu ở `STORAGE_DIR/certificates` (vĩnh viễn, không xóa); sao lưu cùng kho file.
+
+## Sao lưu và khôi phục
+
+- Bật sao lưu: đặt `BACKUP_KEY_BASE64` (khác khóa chủ) và `BACKUP_DB_PASSWORD` trong `.env`; máy chạy backend cần `mysqldump` **bản MySQL 8** (Ubuntu: `apt install mysql-client-core-8.0`; Windows: có sẵn trong MySQL Server/Workbench, đặt `MYSQLDUMP_PATH`). Image Docker đã cài sẵn.
+- Mỗi ngày theo `JOB_RUN_TIME`: dump CSDL bằng tài khoản chỉ đọc + kho file (đã mã hóa) → nén → mã hóa AES-256-GCM → `BACKUP_DIR/rr-backup-<thời điểm>.rrbk`. Bản cũ hơn `BACKUP_RETENTION_DAYS` tự xóa. Quản trị viên chạy tay: `POST /api/admin/backups/run`.
+- Khóa chủ và khóa sao lưu **không** nằm trong bản sao lưu: cất riêng cả hai. Mất khóa sao lưu = không đọc được bản sao lưu; mất khóa chủ = có bản sao lưu cũng không mở được file.
+- Khôi phục (ngoài giao diện hệ thống): kiểm tra toàn vẹn rồi bung ra thư mục trống:
+  ```bash
+  npm run restore-backup -- backups/rr-backup-....rrbk ./khoi-phuc
+  mysql -uroot -p < database/records_retention.sql            # tạo lại user và cấu trúc (xóa CSDL cũ)
+  mysql -uroot -p records_retention < ./khoi-phuc/database.sql # nạp lại dữ liệu
+  # chép ./khoi-phuc/storage/* vào STORAGE_DIR
+  ```
 
 ## Quy ước code
 
@@ -84,14 +103,15 @@ Yêu cầu: Node.js ≥ 22, MySQL 8.0.22+ (khuyến nghị 8.4 LTS).
 
 ```
 database/      records_retention.sql (nguồn chuẩn của CSDL)
-docs/          ke-hoach.md, danh-sach-ham.md, api.http
-scripts/       init-admin.js
+docs/          ke-hoach.md, danh-sach-ham.md, api.http, openapi.json (sinh bằng npm run docs:openapi)
+scripts/       init-admin.js, restore-backup.js, export-openapi.js
 src/
   config/      env.js (kiểm tra .env bằng zod), database.js (pool)
-  core/        tx.js, errors.js, codes.js, time.js, logger.js, settings.js, password.js, session.js, notify.js, dbMessages.js, storage.js, pdf.js
+  core/        tx.js, errors.js, codes.js, time.js, logger.js, settings.js, password.js, session.js, notify.js, dbMessages.js, storage.js, pdf.js, exporter.js, labels.js
   middlewares/ authenticate, authorize, validate, originCheck, rateLimit, upload
   modules/     mỗi module: routes, controller, service, repo, schema
-  jobs/        runner.js (khóa + job_runs), scheduler.js (hẹn giờ mỗi phút), expiryScan.js (quét hạn), disposalExecution.js (thực hiện hủy)
+  jobs/        runner.js (khóa + job_runs), scheduler.js (hẹn giờ mỗi phút), expiryScan.js (quét hạn), disposalExecution.js (thực hiện hủy), backup.js (sao lưu)
+  docs/        openapi.js (sinh OpenAPI từ route + schema zod), swagger.js, summaries.js
   crypto/      envelope.js: mã hóa phong bì file (AES-256-GCM, khóa riêng từng file)
 tests/         vitest + supertest, chạy trên CSDL thật (setup/ kiểm tra kết nối, helpers/ tạo dữ liệu test, fixtures/ file mẫu; kho file test ở storage-test/)
 ```

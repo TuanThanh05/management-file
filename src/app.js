@@ -20,6 +20,8 @@ import { holdRoutes } from './modules/holds/routes.js';
 import { notificationRoutes } from './modules/notifications/routes.js';
 import { disposalRoutes } from './modules/disposals/routes.js';
 import { auditRoutes } from './modules/audit/routes.js';
+import { reportRoutes } from './modules/reports/routes.js';
+import { mountApiDocs } from './docs/swagger.js';
 
 // Tạo ứng dụng Express với middleware bảo mật và các nhóm API
 export function createApp() {
@@ -59,6 +61,8 @@ export function createApp() {
   app.use('/api/notifications', notificationRoutes);
   app.use('/api/disposals', disposalRoutes);
   app.use('/api/audit', auditRoutes);
+  app.use('/api/reports', reportRoutes);
+  if (env.NODE_ENV !== 'production') mountApiDocs(app);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

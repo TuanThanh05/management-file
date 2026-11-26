@@ -20,6 +20,13 @@ const schema = z.object({
   LOGIN_RATE_LIMIT: z.coerce.number().int().positive().default(10),
   MASTER_KEY_BASE64: z.string().refine((v) => Buffer.from(v, 'base64').length === 32, 'MASTER_KEY_BASE64 phải là 32 byte mã hóa base64'),
   STORAGE_DIR: z.string().default('./storage'),
+  BACKUP_DIR: z.string().default('./backups'),
+  BACKUP_KEY_BASE64: z.string().refine((v) => Buffer.from(v, 'base64').length === 32, 'BACKUP_KEY_BASE64 phải là 32 byte mã hóa base64').optional(),
+  BACKUP_DB_USER: z.string().default('backup_retention'),
+  BACKUP_DB_PASSWORD: z.string().optional(),
+  MYSQLDUMP_PATH: z.string().default('mysqldump'),
+}).refine((v) => !v.BACKUP_KEY_BASE64 || v.BACKUP_KEY_BASE64 !== v.MASTER_KEY_BASE64, {
+  path: ['BACKUP_KEY_BASE64'], message: 'Khóa sao lưu phải khác khóa chủ',
 });
 
 const parsed = schema.safeParse(process.env);
@@ -31,4 +38,5 @@ if (!parsed.success) {
 export const env = {
   ...parsed.data,
   corsOrigins: parsed.data.CORS_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean),
+  backupEnabled: Boolean(parsed.data.BACKUP_KEY_BASE64 && parsed.data.BACKUP_DB_PASSWORD),
 };

@@ -77,3 +77,6 @@ export const searchQuery = z.object({
     ctx.addIssue({ code: 'custom', path: ['expiryDateFrom'], message: 'Ngày hết hạn "từ" không được lớn hơn "đến"' });
   }
 });
+
+// Xuất danh sách hồ sơ theo điều kiện BM07 (5.2 CN17): định dạng XLSX hoặc PDF
+export const exportQuery = searchQuery.and(z.object({ format: z.enum(['xlsx', 'pdf']).default('xlsx') }));

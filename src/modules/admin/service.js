@@ -7,6 +7,7 @@ import { revokeAllSessions } from '../auth/repo.js';
 import * as repo from './repo.js';
 import { runExpiryScan } from '../../jobs/expiryScan.js';
 import { runDisposalExecution } from '../../jobs/disposalExecution.js';
+import { runBackup, listBackups as listBackupFiles } from '../../jobs/backup.js';
 
 const ROLE_NAMES = {
   EMPLOYEE: 'Nhân viên', DEPARTMENT_HEAD: 'Trưởng phòng', RECORDS_OFFICER: 'Cán bộ lưu trữ',
@@ -312,7 +313,7 @@ export async function updateSetting(actor, key, { value }) {
 
 // ---------- Tác vụ định kỳ (5.5, theo dõi job_runs) ----------
 
-const RUNNERS = { 'expiry-scan': runExpiryScan, 'disposal-execution': runDisposalExecution };
+const RUNNERS = { 'expiry-scan': runExpiryScan, 'disposal-execution': runDisposalExecution, backup: runBackup };
 
 // Lịch sử chạy tác vụ, mới nhất trước, 20 dòng mỗi trang
 export async function listJobRuns({ jobName, page }) {
@@ -337,4 +338,14 @@ export async function runJobNow(actor, job) {
   await withTx(actor, ({ audit }) => audit({ action: 'JOB_RUN_MANUAL', objectType: 'JOB', objectCode: job,
     result: out.result === 'FAILED' ? 'FAILURE' : 'SUCCESS', details: { runId: out.id, result: out.result, processed: out.processed, errors: out.errors } }));
   return { runId: out.id, result: out.result, processedCount: out.processed, errorCount: out.errors, note: out.note ?? null };
+}
+
+// Danh sách bản sao lưu đang giữ trong BACKUP_DIR và lần sao lưu gần nhất (5.5 CN7)
+export async function listBackups() {
+  const [[last]] = await pool.query(
+    "SELECT started_at, finished_at, result, note FROM job_runs WHERE job_name = 'BACKUP' ORDER BY id DESC LIMIT 1");
+  return {
+    lastRun: last ? { startedAt: last.started_at, finishedAt: last.finished_at, result: last.result, note: last.note } : null,
+    items: await listBackupFiles(),
+  };
 }

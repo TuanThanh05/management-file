@@ -108,7 +108,7 @@ P0 = bắt buộc để demo luồng chính. P1 = làm nếu còn thời gian.
 | 7 | Job quét hạn, notifications, extensions, holds | Hồ sơ test (hạn lùi về quá khứ) chuyển sang EXPIRED | [x] 26/11 |
 | 8 | Đợt hủy và duyệt 2 cấp | Đợt đi hết Nháp → Cấp 1 → Cấp 2 → APPROVED | [x] 26/11 |
 | 9 | Job thực hiện hủy, biên bản PDF, audit verify | Chạy trọn luồng hủy, kiểm tra nhật ký ra INTACT | [x] 26/11 |
-| 10 | Reports, export, backup, test end-to-end, tài liệu API | Postman collection hoặc Swagger cho frontend | [ ] |
+| 10 | Reports, export, backup, test end-to-end, tài liệu API | Postman collection hoặc Swagger cho frontend | [x] 26/11 |
 
 ### Lưu ý để kịp tiến độ
 - Ngày 1–2: xuất sớm danh sách API (OpenAPI hoặc Postman) cho bạn làm React, để frontend không phải chờ backend.
@@ -166,6 +166,11 @@ Những chỗ code đã khác hoặc chi tiết hơn báo cáo; nhóm sửa báo
 | 26 | Chương 2 – BM16 trường 11 | Ghi rõ: chân trang in **SHA-256 của nội dung biên bản** (bản chụp JSON); SHA-256 của **file PDF** lưu trong CSDL, kiểm lại mỗi lần tải và trả kèm khi tải (một file không thể chứa mã băm của chính nó) | Ngày 9 | [ ] |
 | 27 | Chương 2 – BM16 trường 9 | Ghi rõ: danh mục in mã băm từng phiên bản file, **không in tên file** (tên file có thể chứa dữ liệu cá nhân) | Ngày 9 | [ ] |
 | 28 | Chương 2 – QT4.2 | Thêm: tác vụ kiểm tra mỗi phút, đợt đến giờ hẹn thì hủy ngay; lần chạy có lỗi thì 15 phút sau mới thử lại; một hồ sơ lỗi từ 3 lần trở lên thì báo Quản trị hệ thống và Cán bộ lưu trữ; kiểm tra lần cuối không còn hồ sơ đạt thì đợt về Nháp, không lập biên bản | Ngày 9 | [ ] |
+| 29 | Chương 3 – thiết kế CSDL / tài khoản CSDL | Thêm tài khoản **`backup_retention` chỉ đọc** (SELECT, SHOW VIEW, TRIGGER, LOCK TABLES, EVENT, SHOW_ROUTINE) dùng riêng cho sao lưu; tài khoản ứng dụng không có quyền này | Ngày 10 | [ ] |
+| 30 | Chương 2 – 5.5 chức năng 7, 7.1 yêu cầu số 15 (Sao lưu) | Ghi rõ: bản sao lưu mã hóa AES-256-GCM bằng **khóa sao lưu riêng** (khác khóa chủ, không nằm trong bản sao lưu); lưu ở thư mục cấu hình được (ổ / máy khác); khôi phục bằng script `restore-backup.js` (kiểm tra toàn vẹn trước khi bung) – ngoài giao diện hệ thống | Ngày 10 | [ ] |
+| 31 | Chương 2 – 7.2 yêu cầu số 20 (Triển khai) | Ghi rõ: `docker compose --profile app up -d --build` chạy MySQL + backend; frontend và Nginx ghép thêm service khi nhóm hoàn thiện | Ngày 10 | [ ] |
+| 32 | Chương 6 – Ưu khuyết điểm / hạn chế | Thêm: hồ sơ đã hủy vẫn khôi phục được từ bản sao lưu tạo trước thời điểm hủy cho đến khi bản đó bị xóa (tối đa `BACKUP_RETENTION_DAYS`, 30 ngày) – đúng như 5.5 CN7 đã nêu | Ngày 10 | [ ] |
+| 33 | Chương 1 / Chương 4 – công cụ | Thêm: tài liệu API OpenAPI 3.1 sinh tự động từ route và schema zod, xem bằng Swagger UI tại `/api/docs` (chỉ khi chạy dev); xuất XLSX bằng exceljs | Ngày 10 | [ ] |
 
 ---
 
@@ -190,3 +195,4 @@ Những chỗ code đã khác hoặc chi tiết hơn báo cáo; nhóm sửa báo
 | 26/11/2026 | Xong ngày 7. Tác vụ định kỳ dùng bộ hẹn giờ của Node.js (mỗi phút, chạy bù khi máy tắt qua giờ) thay cho node-cron; gia hạn do Nhân viên lập (theo 5.1 CN14 và quyền trong CSDL); từ chối gia hạn báo cả Nhân viên đề xuất và Cán bộ lưu trữ; hàng chờ duyệt của Trưởng phòng có thêm đề xuất gia hạn; phong tỏa hồ sơ đang trong đợt hủy → tự rút khỏi đợt **làm ở ngày 8** (khi có đợt hủy) | Nhóm chốt; bớt một thư viện; khớp báo cáo |
 | 26/11/2026 | Xong ngày 8. Phong tỏa làm đợt hết hồ sơ thì đợt về Nháp ở mọi trạng thái chưa hoàn tất (trừ đợt đã bắt đầu hủy); Trưởng phòng bỏ được đề nghị loại; phòng chưa có Trưởng phòng vẫn gửi đợt và báo Quản trị hệ thống; thu hồi cần `confirm: true`; hàng chờ duyệt của Trưởng phòng có thêm đợt hủy chờ cấp 1 | Nhóm chốt |
 | 26/11/2026 | Xong ngày 9. Thực hiện hủy kiểm tra mỗi phút (hủy đúng giờ hẹn), lỗi thì nghỉ 15 phút, từ lần lỗi thứ 3 báo Quản trị hệ thống và Cán bộ lưu trữ; kiểm tra lần cuối làm trước khi đánh dấu bắt đầu hủy, hết hồ sơ đạt thì đợt về Nháp; biên bản pdfmake 0.3 (phông Roboto, chặn tải URL ngoài); hàng chờ của Giám đốc thêm đề xuất nhãn, đợt chờ cấp 2, đợt đang chờ hủy | Nhóm chốt |
+| 26/11/2026 | Xong ngày 10. Thống kê BM13; xuất danh sách hồ sơ và BM05 (XLSX exceljs, PDF pdfmake); sao lưu bằng mysqldump + tài khoản `backup_retention` chỉ đọc, mã hóa bằng `BACKUP_KEY_BASE64` riêng, script giải mã `restore-backup.js`; OpenAPI 3.1 + Swagger UI `/api/docs` (ngoài production); Dockerfile + service `api` (profile `app`) trong compose; ép `uuid` ≥ 11.1.1 (cảnh báo bảo mật của exceljs); test trọn vòng đời hồ sơ | Nhóm chốt |

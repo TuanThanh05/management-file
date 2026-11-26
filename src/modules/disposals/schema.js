@@ -47,3 +47,6 @@ export const listBatchesQuery = z.object({
   to: isoDate.optional(),
   page: z.coerce.number().int().min(1).default(1),
 }).refine((v) => !(v.from && v.to && v.from > v.to), { path: ['from'], message: 'Ngày "từ" không được lớn hơn "đến"' });
+
+// Định dạng xuất BM05
+export const exportQuery = z.object({ format: z.enum(['xlsx', 'pdf']).default('xlsx') });

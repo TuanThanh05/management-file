@@ -28,3 +28,4 @@ disposalRoutes.post('/:code/approve-level-2', level2, validate({ ...p, body: s.a
 disposalRoutes.post('/:code/return-level-2', level2, validate({ ...p, body: s.reasonSchema }), ctrl.returnLevel2);
 disposalRoutes.post('/:code/revoke', authorize('DISPOSAL.REVOKE'), validate({ ...p, body: s.revokeSchema }), ctrl.revokeBatch);
 disposalRoutes.get('/:code/certificate', authorize('CERTIFICATE.DOWNLOAD'), validate(p), ctrl.downloadCertificate);
+disposalRoutes.get('/:code/export', authorize('DISPOSAL.EXPORT'), validate({ ...p, query: s.exportQuery }), ctrl.exportBatch);

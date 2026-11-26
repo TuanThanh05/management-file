@@ -1,0 +1,12 @@
+.git
+node_modules
+.env
+.env.*
+storage
+storage-test
+backups
+backups-test
+tests
+docs
+coverage
+*.log

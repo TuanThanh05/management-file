@@ -7,3 +7,5 @@ storage/*
 coverage/
 *.log
 storage-test/
+backups/
+backups-test/

@@ -1,5 +1,6 @@
 import * as service from './service.js';
 import * as workflow from './workflow.js';
+import { sendExport } from '../../core/exporter.js';
 import { actorFromReq } from '../../core/tx.js';
 
 // GET /api/records/expiry-preview?documentTypeCode=&documentDate=&eventEndDate=
@@ -92,4 +93,9 @@ export async function rejectRecord(req, res) {
 // POST /api/records/:code/mark-ended
 export async function markRecordEnded(req, res) {
   res.json(await workflow.markRecordEnded(actorFromReq(req), req.user, req.input.params.code, req.input.body));
+}
+
+// GET /api/records/export?format=xlsx|pdf&…(BM07)
+export async function exportRecords(req, res) {
+  sendExport(res, await service.exportRecords(actorFromReq(req), req.user, req.scope, req.input.query), 'danh-sach-ho-so');
 }

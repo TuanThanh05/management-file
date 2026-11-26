@@ -2,10 +2,12 @@ import { pool } from '../../config/database.js';
 import { withTx } from '../../core/tx.js';
 import { AppError } from '../../core/errors.js';
 import { nextCode } from '../../core/codes.js';
-import { formatDateVN } from '../../core/time.js';
+import { formatDateVN, formatDateTimeVN } from '../../core/time.js';
 import { getSettings } from '../../core/settings.js';
 import { notifyUsers, notifyRole, notifyDepartmentHead } from '../../core/notify.js';
 import { certificateOf } from '../certificates/service.js';
+import { exportTable } from '../../core/exporter.js';
+import { BATCH_STATUS_VN } from '../../core/labels.js';
 import * as repo from './repo.js';
 
 const PAGE_SIZE = 20;
@@ -335,4 +337,36 @@ export async function withdrawForHold(conn, audit, recordIds, holdCode) {
     await notifyOfficerAndHead(conn, b, { type: 'SYSTEM_CHANGE', objectType: 'DISPOSAL_BATCH', objectCode: b.code,
       message: `Đợt hủy ${b.code}: rút ${list.length} hồ sơ do phong tỏa ${holdCode}${toDraft ? '; đợt không còn hồ sơ nên về Nháp' : ''}` });
   }
+}
+
+// Xuất danh mục hồ sơ đề nghị hủy BM05 của một đợt ra XLSX / PDF (5.3 CN17); không chứa nội dung file; ghi nhật ký
+export async function exportBatch(actor, user, code, format) {
+  const b = await repo.findBatch(pool, code);
+  if (!b) throw AppError.notFound('Không tìm thấy đợt hủy');
+  const items = (await repo.batchItems(pool, b.id)).filter((x) => x.item_status === 'INCLUDED' || x.item_status === 'DISPOSED');
+  const [sizes] = items.length ? await pool.query(
+    `SELECT f.record_id, COUNT(*) AS n, SUM(v.size_bytes) AS bytes FROM files f
+     JOIN file_versions v ON v.file_id = f.id AND v.version_no = (SELECT MAX(v2.version_no) FROM file_versions v2 WHERE v2.file_id = f.id)
+     WHERE f.record_id IN (?) AND f.is_active GROUP BY f.record_id`, [items.map((x) => x.record_id)]) : [[]];
+  const sizeOf = new Map(sizes.map((r) => [String(r.record_id), r]));
+  const out = await exportTable(format, {
+    title: 'PHIẾU ĐỀ XUẤT HỦY VÀ DANH MỤC HỒ SƠ (BM05)',
+    meta: [['Mã đợt hủy', b.code], ['Phòng ban', `${b.department_name} (${b.department_code})`], ['Lý do đề xuất hủy', b.reason],
+      ['Người lập, ngày lập', `${b.created_by_name} (${b.created_by_email}) – ${formatDateTimeVN(b.created_at)}`],
+      ['Trạng thái đợt', BATCH_STATUS_VN[b.status]], ['Số hồ sơ trong đợt', items.length]],
+    columns: [
+      { header: 'STT', key: 'no', width: 6, pdfWidth: 25 }, { header: 'Mã hồ sơ', key: 'code', width: 24, pdfWidth: 95 },
+      { header: 'Tiêu đề', key: 'title', width: 40 }, { header: 'Loại tài liệu', key: 'type', width: 24, pdfWidth: 90 },
+      { header: 'Nhãn', key: 'label', width: 14, pdfWidth: 55 }, { header: 'Ngày tài liệu', key: 'documentDate', width: 14, pdfWidth: 55 },
+      { header: 'Ngày hết hạn', key: 'expiryDate', width: 14, pdfWidth: 55 }, { header: 'Số file', key: 'files', width: 8, pdfWidth: 35 },
+      { header: 'Tổng dung lượng (byte)', key: 'bytes', width: 18, pdfWidth: 70 },
+    ],
+    rows: items.map((x, i) => {
+      const sz = sizeOf.get(String(x.record_id));
+      return { no: i + 1, code: x.code, title: x.title, type: x.type_name, label: `${x.label_code} v${x.version_no}`,
+        documentDate: formatDateVN(x.document_date), expiryDate: formatDateVN(x.expiry_date), files: Number(sz?.n ?? 0), bytes: Number(sz?.bytes ?? 0) };
+    }),
+  });
+  await withTx(actor, ({ audit }) => audit({ action: 'DISPOSAL_BATCH_EXPORT', objectType: 'DISPOSAL_BATCH', objectCode: code, details: { format, rows: items.length } }));
+  return out;
 }

@@ -5,7 +5,7 @@ import { AppError } from '../core/errors.js';
 
 // Nhận 1 file trường "file" vào bộ nhớ, giới hạn dung lượng theo MAX_FILE_SIZE_MB (BM22); optional: cho phép không có file, nhận thêm trường văn bản
 export function uploadSingle(field = 'file', { optional = false } = {}) {
-  return async (req, res, next) => {
+  return Object.assign(async (req, res, next) => {
     const { MAX_FILE_SIZE_MB } = await getSettings(pool, ['MAX_FILE_SIZE_MB']);
     const handler = multer({
       storage: multer.memoryStorage(),
@@ -20,5 +20,5 @@ export function uploadSingle(field = 'file', { optional = false } = {}) {
       if (err instanceof multer.MulterError) return next(AppError.badRequest(`Dữ liệu tải lên không hợp lệ (${err.code})`));
       next(err);
     });
-  };
+  }, { upload: { field, optional } });
 }

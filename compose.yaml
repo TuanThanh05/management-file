@@ -1,5 +1,6 @@
-# MySQL cho máy dev chạy Docker (tùy chọn; máy đã cài MySQL sẵn thì không cần file này).
-#   docker compose up -d
+# Chạy bằng Docker (tùy chọn; máy đã cài MySQL sẵn thì không cần file này).
+#   docker compose up -d                          -> chỉ MySQL (dev chạy backend bằng npm)
+#   docker compose --profile app up -d --build    -> MySQL + backend API (cổng 3000)
 # Lần đầu (volume còn trống) MySQL tự chạy database/records_retention.sql bằng root.
 # Muốn tạo lại CSDL từ đầu: docker compose down -v && docker compose up -d
 services:
@@ -25,5 +26,29 @@ services:
       timeout: 3s
       retries: 30
 
+  api:
+    profiles: ["app"]
+    build: .
+    container_name: records-retention-api
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      STORAGE_DIR: /data/storage
+      BACKUP_DIR: /backups
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - api_storage:/data/storage
+      # Bản sao lưu: nên đổi thành thư mục trên ổ đĩa / máy khác, ví dụ - /mnt/nas/rr-backups:/backups
+      - api_backups:/backups
+
 volumes:
   mysql_data:
+  api_storage:
+  api_backups:

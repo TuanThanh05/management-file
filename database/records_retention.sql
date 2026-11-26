@@ -6,6 +6,7 @@ SET NAMES utf8mb4;
 DROP DATABASE IF EXISTS records_retention;
 DROP DATABASE IF EXISTS luu_tru_huy;
 DROP USER IF EXISTS 'app_retention'@'%';
+DROP USER IF EXISTS 'backup_retention'@'%';
 DROP USER IF EXISTS 'app_luutru'@'%';
 
 CREATE DATABASE records_retention CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
@@ -1530,5 +1531,10 @@ GRANT EXECUTE ON PROCEDURE records_retention.sp_write_audit_log TO 'app_retentio
 GRANT EXECUTE ON PROCEDURE records_retention.sp_verify_audit_chain TO 'app_retention'@'%';
 GRANT EXECUTE ON PROCEDURE records_retention.sp_next_code_number TO 'app_retention'@'%';
 GRANT EXECUTE ON FUNCTION records_retention.fn_today_vn TO 'app_retention'@'%';
+
+-- TÀI KHOẢN SAO LƯU – CHỈ ĐỌC (mysqldump: dữ liệu, view, trigger, thủ tục). Đổi mật khẩu trước khi triển khai.
+CREATE USER 'backup_retention'@'%' IDENTIFIED BY 'ChangeMe_Backup_2026!';
+GRANT SELECT, SHOW VIEW, TRIGGER, LOCK TABLES, EVENT ON records_retention.* TO 'backup_retention'@'%';
+GRANT SHOW_ROUTINE ON *.* TO 'backup_retention'@'%';
 
 FLUSH PRIVILEGES;

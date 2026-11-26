@@ -7,7 +7,9 @@
     "test": "vitest run",
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "init-admin": "node scripts/init-admin.js"
+    "init-admin": "node scripts/init-admin.js",
+    "docs:openapi": "node scripts/export-openapi.js",
+    "restore-backup": "node scripts/restore-backup.js"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +23,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^18.0.10",
+    "exceljs": "^4.4.0",
     "express": "^5.3.0",
     "express-rate-limit": "^8.7.5",
     "file-type": "^22.3.0",
@@ -31,11 +34,15 @@
     "pdfmake": "^0.3.15",
     "pino": "^10.4.0",
     "pino-http": "^11.0.0",
+    "swagger-ui-express": "^5.0.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "pino-pretty": "^13.2.0",
     "supertest": "^7.3.2",
     "vitest": "^5.1.2"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   }
 }

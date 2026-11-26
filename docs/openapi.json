@@ -1,0 +1,6882 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "API Hệ thống quản lý lưu trữ và hủy dữ liệu",
+    "version": "1.0.0",
+    "description": "Xác thực bằng cookie phiên `rr_session` (httpOnly) cấp khi gọi POST /api/auth/login. Gọi từ frontend cần `credentials: \"include\"`. Ngày dạng YYYY-MM-DD theo lịch Việt Nam; thời điểm dạng ISO 8601 (UTC). Lỗi trả về dạng { error: { code, message, details, requestId } }."
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "session": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "rr_session"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "requestId": {
+                "type": "string"
+              },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "session": []
+    }
+  ],
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Đăng nhập, tài khoản của tôi"
+        ],
+        "summary": "Đăng nhập (BM08) – cấp cookie phiên",
+        "operationId": "POST_api_auth_login",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": [
+          "Đăng nhập, tài khoản của tôi"
+        ],
+        "summary": "Đăng xuất, thu hồi phiên",
+        "operationId": "POST_api_auth_logout",
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/change-password": {
+      "post": {
+        "tags": [
+          "Đăng nhập, tài khoản của tôi"
+        ],
+        "summary": "Đổi mật khẩu (BM09)",
+        "operationId": "POST_api_auth_change_password",
+        "description": "Quyền: ACCOUNT.CHANGE_PASSWORD",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "confirmPassword": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  }
+                },
+                "required": [
+                  "currentPassword",
+                  "newPassword",
+                  "confirmPassword"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": [
+          "Đăng nhập, tài khoản của tôi"
+        ],
+        "summary": "Thông tin người dùng, vai trò, quyền",
+        "operationId": "GET_api_auth_me",
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/departments": {
+      "get": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Danh sách phòng ban",
+        "operationId": "GET_api_admin_departments",
+        "description": "Quyền: ADMIN.DEPARTMENTS",
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Tạo phòng ban (BM20)",
+        "operationId": "POST_api_admin_departments",
+        "description": "Quyền: ADMIN.DEPARTMENTS",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9]{1,10}$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 150
+                  },
+                  "parentCode": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[A-Z0-9]{1,10}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "code",
+                  "name"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/departments/{code}": {
+      "patch": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Sửa phòng ban",
+        "operationId": "PATCH_api_admin_departments_code_",
+        "description": "Quyền: ADMIN.DEPARTMENTS",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9]{1,10}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 150
+                  },
+                  "parentCode": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[A-Z0-9]{1,10}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/departments/{code}/deactivate": {
+      "post": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Ngừng hoạt động phòng ban",
+        "operationId": "POST_api_admin_departments_code_deactivate",
+        "description": "Quyền: ADMIN.DEPARTMENTS",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9]{1,10}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/departments/{code}/activate": {
+      "post": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Mở lại phòng ban",
+        "operationId": "POST_api_admin_departments_code_activate",
+        "description": "Quyền: ADMIN.DEPARTMENTS",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9]{1,10}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/users": {
+      "get": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Danh sách tài khoản",
+        "operationId": "GET_api_admin_users",
+        "description": "Quyền: ADMIN.USERS",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "departmentCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9]{1,10}$"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "LOCKED"
+              ]
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "EMPLOYEE",
+                "DEPARTMENT_HEAD",
+                "RECORDS_OFFICER",
+                "DIRECTOR",
+                "SYSTEM_ADMIN"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Tạo tài khoản (BM21) – trả mật khẩu tạm một lần",
+        "operationId": "POST_api_admin_users",
+        "description": "Quyền: ADMIN.USERS",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "fullName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "departmentCode": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9]{1,10}$"
+                  },
+                  "roles": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "EMPLOYEE",
+                        "DEPARTMENT_HEAD",
+                        "RECORDS_OFFICER",
+                        "DIRECTOR",
+                        "SYSTEM_ADMIN"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "email",
+                  "fullName",
+                  "departmentCode",
+                  "roles"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/users/{id}": {
+      "get": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Chi tiết tài khoản",
+        "operationId": "GET_api_admin_users_id_",
+        "description": "Quyền: ADMIN.USERS",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,19}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Sửa tài khoản",
+        "operationId": "PATCH_api_admin_users_id_",
+        "description": "Quyền: ADMIN.USERS",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,19}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fullName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "departmentCode": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9]{1,10}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/users/{id}/lock": {
+      "post": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Khóa tài khoản",
+        "operationId": "POST_api_admin_users_id_lock",
+        "description": "Quyền: ADMIN.USERS",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,19}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/users/{id}/unlock": {
+      "post": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Mở khóa tài khoản",
+        "operationId": "POST_api_admin_users_id_unlock",
+        "description": "Quyền: ADMIN.USERS",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,19}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/users/{id}/reset-password": {
+      "post": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Đặt lại mật khẩu – trả mật khẩu tạm một lần",
+        "operationId": "POST_api_admin_users_id_reset_password",
+        "description": "Quyền: ADMIN.USERS",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,19}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/users/{id}/roles": {
+      "put": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Gán / thu hồi vai trò (BM21 phần B)",
+        "operationId": "PUT_api_admin_users_id_roles",
+        "description": "Quyền: ADMIN.ROLES",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,19}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "roles": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "EMPLOYEE",
+                        "DEPARTMENT_HEAD",
+                        "RECORDS_OFFICER",
+                        "DIRECTOR",
+                        "SYSTEM_ADMIN"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "roles"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/settings": {
+      "get": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Danh sách tham số hệ thống (BM22)",
+        "operationId": "GET_api_admin_settings",
+        "description": "Quyền: ADMIN.SETTINGS",
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/settings/{key}": {
+      "patch": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Sửa tham số hệ thống",
+        "operationId": "PATCH_api_admin_settings_key_",
+        "description": "Quyền: ADMIN.SETTINGS",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z_]{1,50}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": [
+                      "string",
+                      "number"
+                    ]
+                  }
+                },
+                "required": [
+                  "value"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/jobs/runs": {
+      "get": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Lịch sử chạy tác vụ định kỳ",
+        "operationId": "GET_api_admin_jobs_runs",
+        "description": "Quyền: ADMIN.JOBS",
+        "parameters": [
+          {
+            "name": "jobName",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "EXPIRY_SCAN",
+                "DISPOSAL_EXECUTION",
+                "BACKUP"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/jobs/{job}/run": {
+      "post": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Chạy tay tác vụ (quét hạn / thực hiện hủy)",
+        "operationId": "POST_api_admin_jobs_job_run",
+        "description": "Quyền: ADMIN.JOBS",
+        "parameters": [
+          {
+            "name": "job",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "expiry-scan",
+                "disposal-execution"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/backups": {
+      "get": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Danh sách bản sao lưu, lần sao lưu gần nhất",
+        "operationId": "GET_api_admin_backups",
+        "description": "Quyền: ADMIN.BACKUP",
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/backups/run": {
+      "post": {
+        "tags": [
+          "Quản trị hệ thống"
+        ],
+        "summary": "Chạy sao lưu thủ công",
+        "operationId": "POST_api_admin_backups_run",
+        "description": "Quyền: ADMIN.BACKUP",
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/groups": {
+      "get": {
+        "tags": [
+          "Nhóm hồ sơ, loại tài liệu"
+        ],
+        "summary": "Danh sách nhóm hồ sơ",
+        "operationId": "GET_api_catalog_groups",
+        "description": "Quyền: CATALOG.MANAGE hoặc LABEL.VIEW hoặc RECORD.CREATE hoặc RECORD.VIEW",
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Nhóm hồ sơ, loại tài liệu"
+        ],
+        "summary": "Thêm nhóm hồ sơ (BM14)",
+        "operationId": "POST_api_catalog_groups",
+        "description": "Quyền: CATALOG.MANAGE",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9_-]{1,20}$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 150
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "code",
+                  "name"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/groups/{code}": {
+      "patch": {
+        "tags": [
+          "Nhóm hồ sơ, loại tài liệu"
+        ],
+        "summary": "Sửa nhóm hồ sơ",
+        "operationId": "PATCH_api_catalog_groups_code_",
+        "description": "Quyền: CATALOG.MANAGE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9_-]{1,20}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 150
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/groups/{code}/deactivate": {
+      "post": {
+        "tags": [
+          "Nhóm hồ sơ, loại tài liệu"
+        ],
+        "summary": "Ngừng sử dụng nhóm",
+        "operationId": "POST_api_catalog_groups_code_deactivate",
+        "description": "Quyền: CATALOG.MANAGE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9_-]{1,20}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/groups/{code}/activate": {
+      "post": {
+        "tags": [
+          "Nhóm hồ sơ, loại tài liệu"
+        ],
+        "summary": "Mở lại nhóm",
+        "operationId": "POST_api_catalog_groups_code_activate",
+        "description": "Quyền: CATALOG.MANAGE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9_-]{1,20}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/document-types": {
+      "get": {
+        "tags": [
+          "Nhóm hồ sơ, loại tài liệu"
+        ],
+        "summary": "Danh sách loại tài liệu",
+        "operationId": "GET_api_catalog_document_types",
+        "description": "Quyền: CATALOG.MANAGE hoặc LABEL.VIEW hoặc RECORD.CREATE hoặc RECORD.VIEW",
+        "parameters": [
+          {
+            "name": "groupCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9_-]{1,20}$"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "INACTIVE"
+              ]
+            }
+          },
+          {
+            "name": "usable",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Nhóm hồ sơ, loại tài liệu"
+        ],
+        "summary": "Thêm loại tài liệu (BM15)",
+        "operationId": "POST_api_catalog_document_types",
+        "description": "Quyền: CATALOG.MANAGE",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9_-]{1,20}$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 150
+                  },
+                  "groupCode": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9_-]{1,20}$"
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "code",
+                  "name",
+                  "groupCode"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/document-types/{code}": {
+      "get": {
+        "tags": [
+          "Nhóm hồ sơ, loại tài liệu"
+        ],
+        "summary": "Chi tiết loại tài liệu",
+        "operationId": "GET_api_catalog_document_types_code_",
+        "description": "Quyền: CATALOG.MANAGE hoặc LABEL.VIEW hoặc RECORD.CREATE hoặc RECORD.VIEW",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9_-]{1,20}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Nhóm hồ sơ, loại tài liệu"
+        ],
+        "summary": "Sửa loại tài liệu",
+        "operationId": "PATCH_api_catalog_document_types_code_",
+        "description": "Quyền: CATALOG.MANAGE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9_-]{1,20}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 150
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/document-types/{code}/deactivate": {
+      "post": {
+        "tags": [
+          "Nhóm hồ sơ, loại tài liệu"
+        ],
+        "summary": "Ngừng sử dụng loại tài liệu",
+        "operationId": "POST_api_catalog_document_types_code_deactivate",
+        "description": "Quyền: CATALOG.MANAGE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9_-]{1,20}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/document-types/{code}/activate": {
+      "post": {
+        "tags": [
+          "Nhóm hồ sơ, loại tài liệu"
+        ],
+        "summary": "Mở lại loại tài liệu",
+        "operationId": "POST_api_catalog_document_types_code_activate",
+        "description": "Quyền: CATALOG.MANAGE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9_-]{1,20}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/labels/proposals": {
+      "get": {
+        "tags": [
+          "Nhãn lưu trữ"
+        ],
+        "summary": "Danh sách đề xuất nhãn",
+        "operationId": "GET_api_labels_proposals",
+        "description": "Quyền: LABEL.VIEW",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "PENDING",
+                "ACTIVE",
+                "RETIRED",
+                "REJECTED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Nhãn lưu trữ"
+        ],
+        "summary": "Lập đề xuất nhãn (BM02) – tạo / sửa / ngừng áp dụng",
+        "operationId": "POST_api_labels_proposals",
+        "description": "Quyền: LABEL.PROPOSE",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "proposalType": {
+                        "type": "string",
+                        "const": "CREATE"
+                      },
+                      "labelCode": {
+                        "type": "string",
+                        "pattern": "^[A-Z0-9-]{1,20}$"
+                      },
+                      "groupCode": {
+                        "type": "string",
+                        "pattern": "^[A-Z0-9_-]{1,20}$"
+                      },
+                      "labelName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 150
+                      },
+                      "legalBasis": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 1000
+                      },
+                      "retentionType": {
+                        "type": "string",
+                        "enum": [
+                          "FIXED",
+                          "PERMANENT"
+                        ]
+                      },
+                      "retentionYears": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "startTrigger": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "ARCHIVED_DATE",
+                              "FISCAL_YEAR_END",
+                              "EVENT_END"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "eventName": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 100
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "warningDays": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "containsPersonalData": {
+                        "type": "boolean"
+                      },
+                      "documentTypeCodes": {
+                        "maxItems": 200,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[A-Z0-9_-]{1,20}$"
+                        }
+                      },
+                      "proposalReason": {
+                        "type": "string",
+                        "minLength": 10,
+                        "maxLength": 1000
+                      }
+                    },
+                    "required": [
+                      "proposalType",
+                      "labelCode",
+                      "groupCode",
+                      "labelName",
+                      "legalBasis",
+                      "retentionType",
+                      "containsPersonalData",
+                      "documentTypeCodes",
+                      "proposalReason"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "proposalType": {
+                        "type": "string",
+                        "const": "UPDATE"
+                      },
+                      "labelCode": {
+                        "type": "string",
+                        "pattern": "^[A-Z0-9-]{1,20}$"
+                      },
+                      "labelName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 150
+                      },
+                      "legalBasis": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 1000
+                      },
+                      "retentionType": {
+                        "type": "string",
+                        "enum": [
+                          "FIXED",
+                          "PERMANENT"
+                        ]
+                      },
+                      "retentionYears": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "startTrigger": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "ARCHIVED_DATE",
+                              "FISCAL_YEAR_END",
+                              "EVENT_END"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "eventName": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 100
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "warningDays": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "containsPersonalData": {
+                        "type": "boolean"
+                      },
+                      "documentTypeCodes": {
+                        "maxItems": 200,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[A-Z0-9_-]{1,20}$"
+                        }
+                      },
+                      "proposalReason": {
+                        "type": "string",
+                        "minLength": 10,
+                        "maxLength": 1000
+                      }
+                    },
+                    "required": [
+                      "proposalType",
+                      "labelCode",
+                      "labelName",
+                      "legalBasis",
+                      "retentionType",
+                      "containsPersonalData",
+                      "documentTypeCodes",
+                      "proposalReason"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "proposalType": {
+                        "type": "string",
+                        "const": "DEACTIVATE"
+                      },
+                      "labelCode": {
+                        "type": "string",
+                        "pattern": "^[A-Z0-9-]{1,20}$"
+                      },
+                      "legalBasis": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 1000
+                      },
+                      "proposalReason": {
+                        "type": "string",
+                        "minLength": 10,
+                        "maxLength": 1000
+                      }
+                    },
+                    "required": [
+                      "proposalType",
+                      "labelCode",
+                      "proposalReason"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/labels/proposals/{id}": {
+      "get": {
+        "tags": [
+          "Nhãn lưu trữ"
+        ],
+        "summary": "Chi tiết đề xuất kèm so sánh, cảnh báo rút ngắn",
+        "operationId": "GET_api_labels_proposals_id_",
+        "description": "Quyền: LABEL.VIEW",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,19}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Nhãn lưu trữ"
+        ],
+        "summary": "Sửa đề xuất ở Nháp / Bị từ chối",
+        "operationId": "PATCH_api_labels_proposals_id_",
+        "description": "Quyền: LABEL.PROPOSE",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,19}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "labelName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 150
+                  },
+                  "legalBasis": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1000
+                  },
+                  "retentionType": {
+                    "type": "string",
+                    "enum": [
+                      "FIXED",
+                      "PERMANENT"
+                    ]
+                  },
+                  "retentionYears": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "startTrigger": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "ARCHIVED_DATE",
+                          "FISCAL_YEAR_END",
+                          "EVENT_END"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "eventName": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 100
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "warningDays": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "containsPersonalData": {
+                    "type": "boolean"
+                  },
+                  "documentTypeCodes": {
+                    "maxItems": 200,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[A-Z0-9_-]{1,20}$"
+                    }
+                  },
+                  "proposalReason": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 1000
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/labels/proposals/{id}/submit": {
+      "post": {
+        "tags": [
+          "Nhãn lưu trữ"
+        ],
+        "summary": "Gửi đề xuất cho Giám đốc",
+        "operationId": "POST_api_labels_proposals_id_submit",
+        "description": "Quyền: LABEL.PROPOSE",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,19}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/labels/proposals/{id}/withdraw": {
+      "post": {
+        "tags": [
+          "Nhãn lưu trữ"
+        ],
+        "summary": "Rút đề xuất về Nháp",
+        "operationId": "POST_api_labels_proposals_id_withdraw",
+        "description": "Quyền: LABEL.PROPOSE",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,19}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/labels/proposals/{id}/approve": {
+      "post": {
+        "tags": [
+          "Nhãn lưu trữ"
+        ],
+        "summary": "Giám đốc phê duyệt đề xuất nhãn",
+        "operationId": "POST_api_labels_proposals_id_approve",
+        "description": "Quyền: LABEL.APPROVE",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,19}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/labels/proposals/{id}/reject": {
+      "post": {
+        "tags": [
+          "Nhãn lưu trữ"
+        ],
+        "summary": "Giám đốc từ chối đề xuất nhãn",
+        "operationId": "POST_api_labels_proposals_id_reject",
+        "description": "Quyền: LABEL.APPROVE",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,19}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "comment": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "comment"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/labels": {
+      "get": {
+        "tags": [
+          "Nhãn lưu trữ"
+        ],
+        "summary": "Danh sách nhãn",
+        "operationId": "GET_api_labels",
+        "description": "Quyền: LABEL.VIEW",
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/labels/{code}": {
+      "get": {
+        "tags": [
+          "Nhãn lưu trữ"
+        ],
+        "summary": "Nhãn và lịch sử phiên bản",
+        "operationId": "GET_api_labels_code_",
+        "description": "Quyền: LABEL.VIEW",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9-]{1,20}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/labels/{code}/compare": {
+      "get": {
+        "tags": [
+          "Nhãn lưu trữ"
+        ],
+        "summary": "So sánh hai phiên bản nhãn",
+        "operationId": "GET_api_labels_code_compare",
+        "description": "Quyền: LABEL.VIEW",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9-]{1,20}$"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/records": {
+      "get": {
+        "tags": [
+          "Hồ sơ"
+        ],
+        "summary": "Tra cứu hồ sơ (BM07), 20 dòng/trang",
+        "operationId": "GET_api_records",
+        "description": "Quyền: RECORD.VIEW",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "groupCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 20
+            }
+          },
+          {
+            "name": "documentTypeCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9_-]{1,20}$"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "IN_USE",
+                  "PENDING_ARCHIVE",
+                  "ARCHIVED",
+                  "EXPIRED",
+                  "PENDING_DISPOSAL",
+                  "DISPOSED",
+                  "CANCELLED"
+                ]
+              }
+            }
+          },
+          {
+            "name": "validity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "VALID",
+                "ENDED"
+              ]
+            }
+          },
+          {
+            "name": "onHold",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
+            "name": "documentDateFrom",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "documentDateTo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "expiryDateFrom",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "expiryDateTo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "mine",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": "createdAt",
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "expiryDate",
+                "code"
+              ]
+            }
+          },
+          {
+            "name": "sortDir",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Hồ sơ"
+        ],
+        "summary": "Tạo hồ sơ (BM01)",
+        "operationId": "POST_api_records",
+        "description": "Quyền: RECORD.CREATE",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "maxLength": 255
+                  },
+                  "documentTypeCode": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9_-]{1,20}$"
+                  },
+                  "documentDate": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "eventEndDate": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 2000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "title",
+                  "documentTypeCode",
+                  "documentDate"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/records/export": {
+      "get": {
+        "tags": [
+          "Hồ sơ"
+        ],
+        "summary": "Xuất danh sách hồ sơ ra XLSX / PDF (tối đa 5.000 dòng)",
+        "operationId": "GET_api_records_export",
+        "description": "Quyền: RECORD.EXPORT",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "groupCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 20
+            }
+          },
+          {
+            "name": "documentTypeCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9_-]{1,20}$"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "IN_USE",
+                  "PENDING_ARCHIVE",
+                  "ARCHIVED",
+                  "EXPIRED",
+                  "PENDING_DISPOSAL",
+                  "DISPOSED",
+                  "CANCELLED"
+                ]
+              }
+            }
+          },
+          {
+            "name": "validity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "VALID",
+                "ENDED"
+              ]
+            }
+          },
+          {
+            "name": "onHold",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
+            "name": "documentDateFrom",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "documentDateTo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "expiryDateFrom",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "expiryDateTo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "mine",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": "createdAt",
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "expiryDate",
+                "code"
+              ]
+            }
+          },
+          {
+            "name": "sortDir",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": "xlsx",
+              "type": "string",
+              "enum": [
+                "xlsx",
+                "pdf"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/records/approvals": {
+      "get": {
+        "tags": [
+          "Hồ sơ"
+        ],
+        "summary": "Hàng chờ duyệt của tôi (Trưởng phòng, Cán bộ lưu trữ, Giám đốc)",
+        "operationId": "GET_api_records_approvals",
+        "description": "Quyền: RECORD.APPROVE_ARCHIVE hoặc DISPOSAL.APPROVE_LEVEL_2",
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/records/expiry-preview": {
+      "get": {
+        "tags": [
+          "Hồ sơ"
+        ],
+        "summary": "Xem trước ngày hết hạn dự kiến khi tạo hồ sơ",
+        "operationId": "GET_api_records_expiry_preview",
+        "description": "Quyền: RECORD.CREATE",
+        "parameters": [
+          {
+            "name": "documentTypeCode",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9_-]{1,20}$"
+            }
+          },
+          {
+            "name": "documentDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "eventEndDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/records/{code}": {
+      "get": {
+        "tags": [
+          "Hồ sơ"
+        ],
+        "summary": "Chi tiết hồ sơ, file, lịch sử xử lý",
+        "operationId": "GET_api_records_code_",
+        "description": "Quyền: RECORD.VIEW",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Hồ sơ"
+        ],
+        "summary": "Sửa hồ sơ khi Đang sử dụng",
+        "operationId": "PATCH_api_records_code_",
+        "description": "Quyền: RECORD.UPDATE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "maxLength": 255
+                  },
+                  "documentTypeCode": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9_-]{1,20}$"
+                  },
+                  "documentDate": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "eventEndDate": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 2000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/records/{code}/cancel": {
+      "post": {
+        "tags": [
+          "Hồ sơ"
+        ],
+        "summary": "Hủy bỏ hồ sơ tạo nhầm (BM06)",
+        "operationId": "POST_api_records_code_cancel",
+        "description": "Quyền: RECORD.CANCEL",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 500
+                  },
+                  "confirm": {
+                    "type": "boolean",
+                    "const": true
+                  }
+                },
+                "required": [
+                  "reason",
+                  "confirm"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/records/{code}/files": {
+      "post": {
+        "tags": [
+          "Hồ sơ"
+        ],
+        "summary": "Tải file lên (mã hóa AES-256-GCM)",
+        "operationId": "POST_api_records_code_files",
+        "description": "Quyền: RECORD.UPDATE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/records/{code}/files/{fileId}/versions": {
+      "post": {
+        "tags": [
+          "Hồ sơ"
+        ],
+        "summary": "Thay file – tạo phiên bản mới",
+        "operationId": "POST_api_records_code_files_fileId_versions",
+        "description": "Quyền: RECORD.UPDATE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+            }
+          },
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,19}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/records/{code}/files/{fileId}/remove": {
+      "post": {
+        "tags": [
+          "Hồ sơ"
+        ],
+        "summary": "Gỡ file khỏi danh sách đang dùng",
+        "operationId": "POST_api_records_code_files_fileId_remove",
+        "description": "Quyền: RECORD.UPDATE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+            }
+          },
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,19}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/records/{code}/files/{fileId}/content": {
+      "get": {
+        "tags": [
+          "Hồ sơ"
+        ],
+        "summary": "Xem / tải file (giải mã, kiểm tra toàn vẹn)",
+        "operationId": "GET_api_records_code_files_fileId_content",
+        "description": "Quyền: RECORD.DOWNLOAD",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+            }
+          },
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,19}$"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          {
+            "name": "download",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": "1",
+              "type": "string",
+              "enum": [
+                "0",
+                "1"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/records/{code}/submit": {
+      "post": {
+        "tags": [
+          "Hồ sơ"
+        ],
+        "summary": "Gửi yêu cầu lưu trữ",
+        "operationId": "POST_api_records_code_submit",
+        "description": "Quyền: RECORD.SUBMIT",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/records/{code}/withdraw": {
+      "post": {
+        "tags": [
+          "Hồ sơ"
+        ],
+        "summary": "Rút yêu cầu lưu trữ",
+        "operationId": "POST_api_records_code_withdraw",
+        "description": "Quyền: RECORD.SUBMIT",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/records/{code}/approve": {
+      "post": {
+        "tags": [
+          "Hồ sơ"
+        ],
+        "summary": "Duyệt lưu trữ – gắn nhãn, tính hạn chính thức",
+        "operationId": "POST_api_records_code_approve",
+        "description": "Quyền: RECORD.APPROVE_ARCHIVE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/records/{code}/reject": {
+      "post": {
+        "tags": [
+          "Hồ sơ"
+        ],
+        "summary": "Từ chối lưu trữ (BM10)",
+        "operationId": "POST_api_records_code_reject",
+        "description": "Quyền: RECORD.APPROVE_ARCHIVE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/records/{code}/mark-ended": {
+      "post": {
+        "tags": [
+          "Hồ sơ"
+        ],
+        "summary": "Đánh dấu hết hiệu lực (BM11)",
+        "operationId": "POST_api_records_code_mark_ended",
+        "description": "Quyền: RECORD.MARK_ENDED",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "eventEndDate": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "eventNote": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/retention/alerts": {
+      "get": {
+        "tags": [
+          "Theo dõi hạn, rà soát"
+        ],
+        "summary": "Cảnh báo hạn của phòng: sắp hết hạn, đã hết hạn, chưa xác định",
+        "operationId": "GET_api_retention_alerts",
+        "description": "Quyền: RECORD.VIEW_EXPIRY_ALERTS",
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/retention/expired": {
+      "get": {
+        "tags": [
+          "Theo dõi hạn, rà soát"
+        ],
+        "summary": "Rà soát hồ sơ hết hạn mọi phòng ban",
+        "operationId": "GET_api_retention_expired",
+        "description": "Quyền: RECORD.REVIEW_EXPIRED",
+        "parameters": [
+          {
+            "name": "departmentCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 20
+            }
+          },
+          {
+            "name": "groupCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 20
+            }
+          },
+          {
+            "name": "documentTypeCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 20
+            }
+          },
+          {
+            "name": "labelCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 20
+            }
+          },
+          {
+            "name": "expiryDateFrom",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "expiryDateTo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "eligibleOnly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/retention/eligibility": {
+      "post": {
+        "tags": [
+          "Theo dõi hạn, rà soát"
+        ],
+        "summary": "Đánh / bỏ dấu đủ điều kiện hủy",
+        "operationId": "POST_api_retention_eligibility",
+        "description": "Quyền: RECORD.MARK_ELIGIBLE",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "recordCodes": {
+                    "minItems": 1,
+                    "maxItems": 100,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+                    }
+                  },
+                  "eligible": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "recordCodes",
+                  "eligible"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/extensions": {
+      "get": {
+        "tags": [
+          "Gia hạn"
+        ],
+        "summary": "Theo dõi đề xuất gia hạn",
+        "operationId": "GET_api_extensions",
+        "description": "Quyền: EXTENSION.VIEW",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "APPROVED",
+                "REJECTED"
+              ]
+            }
+          },
+          {
+            "name": "departmentCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 10
+            }
+          },
+          {
+            "name": "recordCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 30
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Gia hạn"
+        ],
+        "summary": "Lập đề xuất gia hạn (BM03)",
+        "operationId": "POST_api_extensions",
+        "description": "Quyền: EXTENSION.REQUEST",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "recordCode": {
+                    "type": "string",
+                    "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+                  },
+                  "newExpiryDate": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "recordCode",
+                  "newExpiryDate",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/extensions/{code}": {
+      "get": {
+        "tags": [
+          "Gia hạn"
+        ],
+        "summary": "Chi tiết đề xuất gia hạn",
+        "operationId": "GET_api_extensions_code_",
+        "description": "Quyền: EXTENSION.VIEW",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^GH-\\d{4}-\\d{4}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/extensions/{code}/approve": {
+      "post": {
+        "tags": [
+          "Gia hạn"
+        ],
+        "summary": "Duyệt gia hạn – hồ sơ về Lưu trữ với hạn mới",
+        "operationId": "POST_api_extensions_code_approve",
+        "description": "Quyền: EXTENSION.APPROVE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^GH-\\d{4}-\\d{4}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "comment": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/extensions/{code}/reject": {
+      "post": {
+        "tags": [
+          "Gia hạn"
+        ],
+        "summary": "Từ chối gia hạn",
+        "operationId": "POST_api_extensions_code_reject",
+        "description": "Quyền: EXTENSION.APPROVE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^GH-\\d{4}-\\d{4}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "comment": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "comment"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/holds": {
+      "get": {
+        "tags": [
+          "Phong tỏa"
+        ],
+        "summary": "Tra cứu lệnh phong tỏa",
+        "operationId": "GET_api_holds",
+        "description": "Quyền: HOLD.MANAGE",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "RELEASED"
+              ]
+            }
+          },
+          {
+            "name": "overdue",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Phong tỏa"
+        ],
+        "summary": "Đặt phong tỏa (BM04), kèm tệp căn cứ tùy chọn",
+        "operationId": "POST_api_holds",
+        "description": "Quyền: HOLD.MANAGE",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "recordCodes": {
+                    "minItems": 1,
+                    "maxItems": 200,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+                    }
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 1000
+                  },
+                  "legalBasis": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                  },
+                  "expectedReleaseDate": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "evidence": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "recordCodes",
+                  "reason",
+                  "legalBasis"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/holds/{code}": {
+      "get": {
+        "tags": [
+          "Phong tỏa"
+        ],
+        "summary": "Chi tiết lệnh phong tỏa",
+        "operationId": "GET_api_holds_code_",
+        "description": "Quyền: HOLD.MANAGE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^PT-\\d{4}-\\d{4}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/holds/{code}/evidence": {
+      "get": {
+        "tags": [
+          "Phong tỏa"
+        ],
+        "summary": "Tải tệp căn cứ của lệnh",
+        "operationId": "GET_api_holds_code_evidence",
+        "description": "Quyền: HOLD.MANAGE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^PT-\\d{4}-\\d{4}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/holds/{code}/release": {
+      "post": {
+        "tags": [
+          "Phong tỏa"
+        ],
+        "summary": "Gỡ phong tỏa (cả lệnh hoặc từng hồ sơ)",
+        "operationId": "POST_api_holds_code_release",
+        "description": "Quyền: HOLD.MANAGE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^PT-\\d{4}-\\d{4}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "recordCodes": {
+                    "minItems": 1,
+                    "maxItems": 200,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+                    }
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications": {
+      "get": {
+        "tags": [
+          "Thông báo"
+        ],
+        "summary": "Thông báo của tôi",
+        "operationId": "GET_api_notifications",
+        "description": "Quyền: NOTIFICATION.VIEW",
+        "parameters": [
+          {
+            "name": "unread",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/unread-count": {
+      "get": {
+        "tags": [
+          "Thông báo"
+        ],
+        "summary": "Số thông báo chưa đọc",
+        "operationId": "GET_api_notifications_unread_count",
+        "description": "Quyền: NOTIFICATION.VIEW",
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/read-all": {
+      "post": {
+        "tags": [
+          "Thông báo"
+        ],
+        "summary": "Đánh dấu tất cả đã đọc",
+        "operationId": "POST_api_notifications_read_all",
+        "description": "Quyền: NOTIFICATION.VIEW",
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/{id}/read": {
+      "post": {
+        "tags": [
+          "Thông báo"
+        ],
+        "summary": "Đánh dấu một thông báo đã đọc",
+        "operationId": "POST_api_notifications_id_read",
+        "description": "Quyền: NOTIFICATION.VIEW",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,19}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/disposals": {
+      "get": {
+        "tags": [
+          "Đợt hủy, biên bản"
+        ],
+        "summary": "Theo dõi đợt hủy",
+        "operationId": "GET_api_disposals",
+        "description": "Quyền: DISPOSAL.VIEW",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "PENDING_LEVEL_1",
+                "PENDING_LEVEL_2",
+                "APPROVED",
+                "COMPLETED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "departmentCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 10
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Đợt hủy, biên bản"
+        ],
+        "summary": "Lập đợt hủy (BM05)",
+        "operationId": "POST_api_disposals",
+        "description": "Quyền: DISPOSAL.MANAGE",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "departmentCode": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9]{1,10}$"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 1000
+                  },
+                  "recordCodes": {
+                    "maxItems": 500,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+                    }
+                  }
+                },
+                "required": [
+                  "departmentCode",
+                  "reason",
+                  "recordCodes"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/disposals/{code}": {
+      "get": {
+        "tags": [
+          "Đợt hủy, biên bản"
+        ],
+        "summary": "Chi tiết đợt: danh mục, hồ sơ bị loại / rút, lịch sử, biên bản",
+        "operationId": "GET_api_disposals_code_",
+        "description": "Quyền: DISPOSAL.VIEW",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^DH-[A-Z0-9]{1,10}-\\d{4}-\\d{3}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Đợt hủy, biên bản"
+        ],
+        "summary": "Sửa đợt Nháp: lý do, thêm / bớt hồ sơ",
+        "operationId": "PATCH_api_disposals_code_",
+        "description": "Quyền: DISPOSAL.MANAGE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^DH-[A-Z0-9]{1,10}-\\d{4}-\\d{3}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 1000
+                  },
+                  "addRecordCodes": {
+                    "maxItems": 500,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+                    }
+                  },
+                  "removeRecordCodes": {
+                    "maxItems": 500,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+                    }
+                  },
+                  "removeReason": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 500
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/disposals/{code}/cancel": {
+      "post": {
+        "tags": [
+          "Đợt hủy, biên bản"
+        ],
+        "summary": "Hủy bỏ đợt Nháp",
+        "operationId": "POST_api_disposals_code_cancel",
+        "description": "Quyền: DISPOSAL.MANAGE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^DH-[A-Z0-9]{1,10}-\\d{4}-\\d{3}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/disposals/{code}/submit": {
+      "post": {
+        "tags": [
+          "Đợt hủy, biên bản"
+        ],
+        "summary": "Gửi đợt duyệt cấp 1",
+        "operationId": "POST_api_disposals_code_submit",
+        "description": "Quyền: DISPOSAL.MANAGE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^DH-[A-Z0-9]{1,10}-\\d{4}-\\d{3}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/disposals/{code}/exclusions": {
+      "post": {
+        "tags": [
+          "Đợt hủy, biên bản"
+        ],
+        "summary": "Trưởng phòng đề nghị loại một hồ sơ (BM12 phần B)",
+        "operationId": "POST_api_disposals_code_exclusions",
+        "description": "Quyền: DISPOSAL.APPROVE_LEVEL_1",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^DH-[A-Z0-9]{1,10}-\\d{4}-\\d{3}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "recordCode": {
+                    "type": "string",
+                    "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "recordCode",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/disposals/{code}/exclusions/remove": {
+      "post": {
+        "tags": [
+          "Đợt hủy, biên bản"
+        ],
+        "summary": "Bỏ đề nghị loại",
+        "operationId": "POST_api_disposals_code_exclusions_remove",
+        "description": "Quyền: DISPOSAL.APPROVE_LEVEL_1",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^DH-[A-Z0-9]{1,10}-\\d{4}-\\d{3}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "recordCode": {
+                    "type": "string",
+                    "pattern": "^HS-[A-Z0-9]{1,10}-\\d{4}-\\d{6}$"
+                  }
+                },
+                "required": [
+                  "recordCode"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/disposals/{code}/approve-level-1": {
+      "post": {
+        "tags": [
+          "Đợt hủy, biên bản"
+        ],
+        "summary": "Đồng ý đợt (cấp 1)",
+        "operationId": "POST_api_disposals_code_approve_level_1",
+        "description": "Quyền: DISPOSAL.APPROVE_LEVEL_1",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^DH-[A-Z0-9]{1,10}-\\d{4}-\\d{3}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "comment": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/disposals/{code}/return-level-1": {
+      "post": {
+        "tags": [
+          "Đợt hủy, biên bản"
+        ],
+        "summary": "Trả lại đợt (cấp 1)",
+        "operationId": "POST_api_disposals_code_return_level_1",
+        "description": "Quyền: DISPOSAL.APPROVE_LEVEL_1",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^DH-[A-Z0-9]{1,10}-\\d{4}-\\d{3}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/disposals/{code}/approve-level-2": {
+      "post": {
+        "tags": [
+          "Đợt hủy, biên bản"
+        ],
+        "summary": "Phê duyệt đợt (cấp 2) – đặt giờ hủy",
+        "operationId": "POST_api_disposals_code_approve_level_2",
+        "description": "Quyền: DISPOSAL.APPROVE_LEVEL_2",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^DH-[A-Z0-9]{1,10}-\\d{4}-\\d{3}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "comment": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/disposals/{code}/return-level-2": {
+      "post": {
+        "tags": [
+          "Đợt hủy, biên bản"
+        ],
+        "summary": "Trả lại đợt (cấp 2)",
+        "operationId": "POST_api_disposals_code_return_level_2",
+        "description": "Quyền: DISPOSAL.APPROVE_LEVEL_2",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^DH-[A-Z0-9]{1,10}-\\d{4}-\\d{3}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/disposals/{code}/revoke": {
+      "post": {
+        "tags": [
+          "Đợt hủy, biên bản"
+        ],
+        "summary": "Thu hồi quyết định hủy (BM17)",
+        "operationId": "POST_api_disposals_code_revoke",
+        "description": "Quyền: DISPOSAL.REVOKE",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^DH-[A-Z0-9]{1,10}-\\d{4}-\\d{3}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 500
+                  },
+                  "confirm": {
+                    "type": "boolean",
+                    "const": true
+                  }
+                },
+                "required": [
+                  "reason",
+                  "confirm"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/disposals/{code}/certificate": {
+      "get": {
+        "tags": [
+          "Đợt hủy, biên bản"
+        ],
+        "summary": "Tải biên bản hủy PDF (BM16), kiểm tra mã băm",
+        "operationId": "GET_api_disposals_code_certificate",
+        "description": "Quyền: CERTIFICATE.DOWNLOAD",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^DH-[A-Z0-9]{1,10}-\\d{4}-\\d{3}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/disposals/{code}/export": {
+      "get": {
+        "tags": [
+          "Đợt hủy, biên bản"
+        ],
+        "summary": "Xuất danh mục đề nghị hủy BM05 ra XLSX / PDF",
+        "operationId": "GET_api_disposals_code_export",
+        "description": "Quyền: DISPOSAL.EXPORT",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^DH-[A-Z0-9]{1,10}-\\d{4}-\\d{3}$"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": "xlsx",
+              "type": "string",
+              "enum": [
+                "xlsx",
+                "pdf"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/audit/logs": {
+      "get": {
+        "tags": [
+          "Nhật ký"
+        ],
+        "summary": "Tra cứu nhật ký (BM18), 50 dòng/trang",
+        "operationId": "GET_api_audit_logs",
+        "description": "Quyền: AUDIT.VIEW",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userEmail",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 255
+            }
+          },
+          {
+            "name": "actions",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Z0-9_]{1,50}$"
+              }
+            }
+          },
+          {
+            "name": "objectCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 50
+            }
+          },
+          {
+            "name": "result",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SUCCESS",
+                "FAILURE"
+              ]
+            }
+          },
+          {
+            "name": "ip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 45
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/audit/verify": {
+      "post": {
+        "tags": [
+          "Nhật ký"
+        ],
+        "summary": "Kiểm tra toàn vẹn chuỗi băm nhật ký (BM19)",
+        "operationId": "POST_api_audit_verify",
+        "description": "Quyền: AUDIT.VERIFY",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fromSeq": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "toSeq": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "201": {
+            "description": "Đã tạo (với API tạo mới)"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/audit/checks": {
+      "get": {
+        "tags": [
+          "Nhật ký"
+        ],
+        "summary": "Lịch sử kiểm tra toàn vẹn",
+        "operationId": "GET_api_audit_checks",
+        "description": "Quyền: AUDIT.VERIFY",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/summary": {
+      "get": {
+        "tags": [
+          "Thống kê"
+        ],
+        "summary": "Thống kê hồ sơ (BM13) theo phạm vi",
+        "operationId": "GET_api_reports_summary",
+        "description": "Quyền: REPORT.VIEW",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn"
+          },
+          "403": {
+            "description": "Không có quyền"
+          },
+          "404": {
+            "description": "Không tìm thấy (hoặc ngoài phạm vi được xem)"
+          },
+          "409": {
+            "description": "Xung đột trạng thái / vi phạm quy tắc nghiệp vụ"
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "tags": [
+          "Hệ thống"
+        ],
+        "summary": "Kiểm tra sống (không cần đăng nhập)",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Thành công"
+          }
+        }
+      }
+    }
+  }
+}

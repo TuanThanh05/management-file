@@ -454,3 +454,23 @@ Content-Type: application/json
 
 ### Lịch sử kiểm tra toàn vẹn
 GET {{base}}/audit/checks
+
+### ---------- Ngày 10: thống kê, xuất file, sao lưu ----------
+
+### Thống kê BM13 (Trưởng phòng: phòng mình; Cán bộ lưu trữ / Giám đốc: toàn bộ, from/to cho chỉ tiêu gia hạn)
+GET {{base}}/reports/summary?from=2026-01-01&to=2026-12-31
+
+### Xuất danh sách hồ sơ theo điều kiện BM07 (format=xlsx|pdf, tối đa 5.000 dòng)
+GET {{base}}/records/export?format=xlsx&status=ARCHIVED,EXPIRED
+
+### Xuất danh mục đề nghị hủy BM05 của một đợt
+GET {{base}}/disposals/DH-KT-2026-001/export?format=pdf
+
+### Quản trị viên: sao lưu thủ công
+POST {{base}}/admin/backups/run
+
+### Quản trị viên: danh sách bản sao lưu
+GET {{base}}/admin/backups
+
+### Tài liệu OpenAPI (Swagger UI mở trình duyệt: http://localhost:3000/api/docs)
+GET {{base}}/docs/openapi.json

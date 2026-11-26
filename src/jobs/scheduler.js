@@ -4,8 +4,11 @@ import { todayVN, timeVN } from '../core/time.js';
 import { logger } from '../core/logger.js';
 import { runExpiryScan } from './expiryScan.js';
 import { runDisposalExecution, hasDueBatches } from './disposalExecution.js';
+import { runBackup } from './backup.js';
+import { env } from '../config/env.js';
 
-const JOBS = { EXPIRY_SCAN: runExpiryScan };
+// Tác vụ hằng ngày theo JOB_RUN_TIME; sao lưu chỉ chạy khi đã cấu hình khóa và tài khoản sao lưu
+const JOBS = { EXPIRY_SCAN: runExpiryScan, ...(env.backupEnabled && { BACKUP: runBackup }) };
 
 // Hôm nay (giờ VN) tác vụ đã chạy theo lịch chưa (bỏ qua lần SKIPPED)
 async function ranToday(jobName) {
