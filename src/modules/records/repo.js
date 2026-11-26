@@ -149,3 +149,90 @@ export async function recordHistory(conn, code) {
      ORDER BY a.seq`, [code]);
   return rows;
 }
+
+// ---------- Quy trình lưu trữ (ngày 6) ----------
+
+// Người tạo hồ sơ hiện có đang giữ vai trò Trưởng phòng không (xét tại thời điểm duyệt)
+export async function creatorIsDepartmentHead(conn, userId) {
+  const [[row]] = await conn.query(
+    `SELECT COUNT(*) AS n FROM user_roles ur JOIN roles ro ON ro.id = ur.role_id JOIN users u ON u.id = ur.user_id
+     WHERE ur.user_id = ? AND ro.code = 'DEPARTMENT_HEAD' AND ur.revoked_at IS NULL AND u.status = 'ACTIVE'`, [userId]);
+  return Number(row.n) > 0;
+}
+
+// Trưởng phòng đang hoạt động của phòng ban (id), không có thì null
+export async function departmentHeadOf(conn, departmentId) {
+  const [[row]] = await conn.query(
+    `SELECT u.id FROM user_roles ur JOIN roles ro ON ro.id = ur.role_id JOIN users u ON u.id = ur.user_id
+     WHERE ro.code = 'DEPARTMENT_HEAD' AND ur.revoked_at IS NULL AND u.status = 'ACTIVE' AND u.department_id = ?
+     ORDER BY ur.granted_at LIMIT 1`, [departmentId]);
+  return row ? String(row.id) : null;
+}
+
+// Chuyển trạng thái hồ sơ kèm các cột liên quan ('NOW' = thời điểm hiện tại UTC)
+export async function setRecordStatus(conn, id, status, extra = {}) {
+  const cols = Object.keys(extra);
+  const sets = ['status = ?', ...cols.map((c) => (extra[c] === 'NOW' ? `${c} = UTC_TIMESTAMP(3)` : `${c} = ?`))];
+  const params = [status, ...cols.filter((c) => extra[c] !== 'NOW').map((c) => extra[c]), id];
+  await conn.query(`UPDATE records SET ${sets.join(', ')} WHERE id = ?`, params);
+}
+
+// Ghi nhận hết hiệu lực nghiệp vụ (một lần); có ngày sự kiện thì kèm mốc và ngày hết hạn
+export async function markEnded(conn, id, { eventEndDate, eventNote, endedBy, retentionStartDate, expiryDate }) {
+  await conn.query(
+    `UPDATE records SET validity = 'ENDED', event_end_date = COALESCE(?, event_end_date), event_note = ?,
+       ended_marked_by = ?, ended_marked_at = UTC_TIMESTAMP(3),
+       retention_start_date = COALESCE(?, retention_start_date), expiry_date = COALESCE(?, expiry_date)
+     WHERE id = ?`, [eventEndDate ?? null, eventNote, endedBy, retentionStartDate ?? null, expiryDate ?? null, id]);
+}
+
+// Hàng chờ duyệt lưu trữ: Trưởng phòng thấy hồ sơ phòng mình (người tạo không phải Trưởng phòng), Cán bộ lưu trữ thấy hồ sơ do Trưởng phòng tạo
+export async function listPendingApprovals(conn, { headOfDepartmentId, asRecordsOfficer, excludeUserId }) {
+  const isHead = `EXISTS (SELECT 1 FROM user_roles ur JOIN roles ro ON ro.id = ur.role_id JOIN users cu ON cu.id = ur.user_id
+    WHERE ur.user_id = r.created_by AND ro.code = 'DEPARTMENT_HEAD' AND ur.revoked_at IS NULL AND cu.status = 'ACTIVE')`;
+  const parts = [];
+  const params = [];
+  if (headOfDepartmentId) { parts.push(`(r.department_id = ? AND NOT ${isHead})`); params.push(headOfDepartmentId); }
+  if (asRecordsOfficer) parts.push(`(${isHead})`);
+  if (!parts.length) return [];
+  const [rows] = await conn.query(
+    `SELECT r.code, r.title, r.document_date, r.submitted_at, t.code AS type_code, t.name AS type_name,
+            d.code AS department_code, u.email AS created_by_email, u.full_name AS created_by_name,
+            DATEDIFF(DATE(UTC_TIMESTAMP() + INTERVAL 7 HOUR), DATE(r.submitted_at + INTERVAL 7 HOUR)) AS waiting_days
+     FROM records r JOIN document_types t ON t.id = r.document_type_id JOIN departments d ON d.id = r.department_id
+     JOIN users u ON u.id = r.created_by
+     WHERE r.status = 'PENDING_ARCHIVE' AND r.created_by <> ? AND (${parts.join(' OR ')})
+     ORDER BY r.submitted_at`, [excludeUserId, ...params]);
+  return rows;
+}
+
+// Tra cứu hồ sơ theo BM07 với điều kiện phạm vi; trả về tổng số và một trang kết quả
+export async function searchRecords(conn, { scopeSql, scopeParams, filters, sort, page, pageSize }) {
+  const where = [scopeSql];
+  const params = [...scopeParams];
+  const like = (s) => `%${s.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+  if (filters.q) { where.push('(r.code LIKE ? OR r.title LIKE ?)'); params.push(like(filters.q), like(filters.q)); }
+  if (filters.groupCode) { where.push('g.code = ?'); params.push(filters.groupCode); }
+  if (filters.documentTypeCode) { where.push('t.code = ?'); params.push(filters.documentTypeCode); }
+  if (filters.status?.length) { where.push('r.status IN (?)'); params.push(filters.status); }
+  if (filters.validity) { where.push('r.validity = ?'); params.push(filters.validity); }
+  if (filters.onHold !== undefined) { where.push('r.is_on_hold = ?'); params.push(filters.onHold); }
+  if (filters.documentDateFrom) { where.push('r.document_date >= ?'); params.push(filters.documentDateFrom); }
+  if (filters.documentDateTo) { where.push('r.document_date <= ?'); params.push(filters.documentDateTo); }
+  if (filters.expiryDateFrom) { where.push('r.expiry_date >= ?'); params.push(filters.expiryDateFrom); }
+  if (filters.expiryDateTo) { where.push('r.expiry_date <= ?'); params.push(filters.expiryDateTo); }
+  if (filters.mineUserId) { where.push('r.created_by = ?'); params.push(filters.mineUserId); }
+  const from = `FROM records r JOIN document_types t ON t.id = r.document_type_id JOIN record_groups g ON g.id = t.group_id
+    JOIN departments d ON d.id = r.department_id JOIN users u ON u.id = r.created_by
+    LEFT JOIN label_versions v ON v.id = r.label_version_id LEFT JOIN retention_labels l ON l.id = v.label_id`;
+  const whereSql = `WHERE ${where.join(' AND ')}`;
+  const order = { createdAt: 'r.created_at', expiryDate: 'r.expiry_date', code: 'r.code' }[sort.by];
+  const [[{ total }]] = await conn.query(`SELECT COUNT(*) AS total ${from} ${whereSql}`, params);
+  const [rows] = await conn.query(
+    `SELECT r.code, r.title, r.status, r.validity, r.is_on_hold, r.document_date, r.expiry_date, r.created_at, r.label_version_id,
+            v.retention_type, t.code AS type_code, t.name AS type_name, g.code AS group_code, g.name AS group_name,
+            d.code AS department_code, u.email AS created_by_email, l.code AS label_code, v.version_no AS label_version_no
+     ${from} ${whereSql} ORDER BY ${order} ${sort.dir === 'asc' ? 'ASC' : 'DESC'}, r.id DESC LIMIT ? OFFSET ?`,
+    [...params, pageSize, (page - 1) * pageSize]);
+  return { total: Number(total), rows };
+}

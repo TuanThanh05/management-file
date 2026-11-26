@@ -150,7 +150,7 @@ Cập nhật mỗi khi thêm hoặc sửa hàm. Quy ước chú thích trong cod
 | `getVersionTypes`, `addVersionTypes`, `removeVersionTypes`, `typesInOtherOpenProposals` | `repo.js` | Truy vấn bảng `label_version_document_types` (chỉ bỏ loại khi Nháp) | TuanThanh05 | 26/11/2026 |
 | `findTypesByCodes`, `countTypesInUse`, `pointTypesToVersion`, `detachTypesFromVersion`, `currentVersionsOfTypes`, `countStoredRecordsOfTypes` | `repo.js` | Gắn/bỏ nhãn của loại tài liệu, đếm hồ sơ bị ảnh hưởng | TuanThanh05 | 26/11/2026 |
 
-## Module Records – `src/modules/records` (báo cáo 5.1 chức năng 4–7, 10, 12, 13; BM01, BM06)
+## Module Records – `src/modules/records` (báo cáo 5.1 chức năng 4–13, 5.2 chức năng 4–8, 5.3 chức năng 3; BM01, BM06, BM07, BM11)
 
 | Tên hàm | File | Làm gì | Người viết | Ngày |
 |---|---|---|---|---|
@@ -172,6 +172,17 @@ Cập nhật mỗi khi thêm hoặc sửa hàm. Quy ước chú thích trong cod
 | `insertRecord`, `findRecord`, `getRecordDetail`, `updateRecord`, `cancelRecord`, `recordHistory` | `repo.js` | Truy vấn bảng `records` và lịch sử trong `audit_logs` | TuanThanh05 | 26/11/2026 |
 | `insertFile`, `findFile`, `deactivateFile`, `countActiveFiles`, `listFiles` | `repo.js` | Truy vấn bảng `files` | TuanThanh05 | 26/11/2026 |
 | `insertFileVersion`, `findFileVersion`, `nextFileVersionNo`, `destroyKeysOfRecord`, `markPurged` | `repo.js` | Truy vấn bảng `file_versions`; xóa khóa (hủy bằng mật mã) | TuanThanh05 | 26/11/2026 |
+| `searchRecords` | `service.js` | Tra cứu hồ sơ theo BM07 trong phạm vi được xem, 20 dòng/trang | TuanThanh05 | 26/11/2026 |
+| `loadRecordDetail` | `service.js` | Gộp chi tiết hồ sơ (dùng chung cho xem chi tiết và quy trình lưu trữ) | TuanThanh05 | 26/11/2026 |
+| `submitRecord`, `withdrawRecord` | `workflow.js` | Gửi / rút yêu cầu lưu trữ; báo người duyệt (5.1 CN8, CN9) | TuanThanh05 | 26/11/2026 |
+| `approveRecord` | `workflow.js` | Duyệt lưu trữ: gắn phiên bản nhãn, tính hạn chính thức (5.2 CN5–6, 5.3 CN3) | TuanThanh05 | 26/11/2026 |
+| `rejectRecord` | `workflow.js` | Từ chối lưu trữ kèm lý do, trả hồ sơ về Đang sử dụng (5.2 CN7) | TuanThanh05 | 26/11/2026 |
+| `listApprovals` | `workflow.js` | Hàng chờ duyệt lưu trữ của người đang đăng nhập (5.2 CN4) | TuanThanh05 | 26/11/2026 |
+| `markRecordEnded` | `workflow.js` | Đánh dấu hết hiệu lực; nhãn theo sự kiện thì tính hạn (5.2 CN8, BM11) | TuanThanh05 | 26/11/2026 |
+| `approverMode`, `notifyApprovers`, `requireApprover` | `workflow.js` | Xác định người duyệt tại thời điểm thao tác; báo người duyệt hoặc Quản trị hệ thống | TuanThanh05 | 26/11/2026 |
+| `creatorIsDepartmentHead`, `departmentHeadOf` | `repo.js` | Người tạo có đang là Trưởng phòng; Trưởng phòng hiện tại của phòng | TuanThanh05 | 26/11/2026 |
+| `setRecordStatus`, `markEnded` | `repo.js` | Chuyển trạng thái hồ sơ; ghi hết hiệu lực nghiệp vụ | TuanThanh05 | 26/11/2026 |
+| `listPendingApprovals`, `searchRecords` | `repo.js` | Truy vấn hàng chờ duyệt; truy vấn tra cứu có lọc, sắp xếp, phân trang | TuanThanh05 | 26/11/2026 |
 
 ## Script – `scripts`
 

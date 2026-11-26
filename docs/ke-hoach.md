@@ -79,7 +79,7 @@ P0 = bắt buộc để demo luồng chính. P1 = làm nếu còn thời gian.
 | 2 | Admin | CRUD phòng ban; tạo, khóa tài khoản, đặt lại mật khẩu; gán/thu hồi vai trò (thu hồi phiên `ROLES_CHANGED`); sửa tham số hệ thống | P0 |
 | 3 | Catalog | CRUD nhóm hồ sơ, loại tài liệu | P0 |
 | 4 | Labels | Lập đề xuất nhãn (CREATE/UPDATE/DEACTIVATE), sửa ở Nháp, gửi, rút. Giám đốc duyệt/từ chối; khi duyệt cập nhật `current_label_version_id` của loại tài liệu, phiên bản cũ → RETIRED. Xem lịch sử phiên bản | P0 |
-| 5 | Records | Tạo, sửa khi Đang sử dụng, hủy bỏ hồ sơ tạo nhầm; gửi/rút yêu cầu lưu trữ; duyệt/từ chối (gắn phiên bản nhãn, tính mốc và ngày hết hạn); Trưởng phòng đánh dấu hết hiệu lực; tra cứu có lọc, phân trang, FULLTEXT | P0 |
+| 5 | Records | Tạo, sửa khi Đang sử dụng, hủy bỏ hồ sơ tạo nhầm; gửi/rút yêu cầu lưu trữ; duyệt/từ chối (gắn phiên bản nhãn, tính mốc và ngày hết hạn); Trưởng phòng đánh dấu hết hiệu lực; tra cứu có lọc, phân trang, tìm "chứa chuỗi" (LIKE) | P0 |
 | 6 | Files | Tải lên (magic bytes, dung lượng, số file, sha256, mã hóa AES-GCM); tải về (giải mã, kiểm tra auth_tag); gỡ file; phiên bản mới | P0 |
 | 7 | Job quét hạn | Hằng ngày: ARCHIVED → EXPIRED khi đến hạn; cảnh báo trước N ngày (`is_warned`); ghi `job_runs` | P0 |
 | 8 | Rà soát hết hạn | Cán bộ lưu trữ xem hồ sơ hết hạn, đặt/bỏ dấu đủ điều kiện hủy | P0 |
@@ -104,7 +104,7 @@ P0 = bắt buộc để demo luồng chính. P1 = làm nếu còn thời gian.
 | 3 | Admin (phòng ban, người dùng, vai trò, tham số) | Tạo đủ 5 vai trò để test các ngày sau | [x] 26/11 |
 | 4 | Catalog + Labels (đề xuất → duyệt) | Loại tài liệu có nhãn đang hiệu lực | [x] 26/11 |
 | 5 | Records + Files (mã hóa, giải mã) | Tạo hồ sơ, tải file lên rồi tải về đúng sha256 | [x] 26/11 |
-| 6 | Gửi/duyệt lưu trữ, tính hạn, tra cứu, đánh dấu hết hiệu lực | Hồ sơ ARCHIVED có `expiry_date` | [ ] |
+| 6 | Gửi/duyệt lưu trữ, tính hạn, tra cứu, đánh dấu hết hiệu lực | Hồ sơ ARCHIVED có `expiry_date` | [x] 26/11 |
 | 7 | Job quét hạn, notifications, extensions, holds | Hồ sơ test (hạn lùi về quá khứ) chuyển sang EXPIRED | [ ] |
 | 8 | Đợt hủy và duyệt 2 cấp | Đợt đi hết Nháp → Cấp 1 → Cấp 2 → APPROVED | [ ] |
 | 9 | Job thực hiện hủy, biên bản PDF, audit verify | Chạy trọn luồng hủy, kiểm tra nhật ký ra INTACT | [ ] |
@@ -147,6 +147,10 @@ Những chỗ code đã khác hoặc chi tiết hơn báo cáo; nhóm sửa báo
 | 7 | Chương 2 – 5.1 chức năng 5 (Tải file lên) | Thêm: đuôi tên file phải khớp định dạng thật theo nội dung, không khớp thì từ chối (ví dụ PNG đặt tên .pdf) | Ngày 5 | [ ] |
 | 8 | Chương 6 – Ưu khuyết điểm / hạn chế | Thêm hạn chế: mất khóa chủ `MASTER_KEY_BASE64` thì không mở được file trong kho; chưa hỗ trợ đổi khóa định kỳ (key rotation) | Ngày 5 | [ ] |
 | 9 | Chương 2 – 5.1 chức năng 12 (Xem chi tiết hồ sơ) | Thêm: mỗi lượt xem chi tiết hồ sơ đều ghi nhật ký (như 5.3 chức năng 2 đã ghi cho Cán bộ lưu trữ) | Ngày 5 | [ ] |
+| 10 | Chương 2 – 5.1 chức năng 8 (Gửi yêu cầu lưu trữ) | Thêm: phòng chưa có Trưởng phòng thì vẫn gửi được, hệ thống báo Quản trị hệ thống; loại tài liệu không còn nhãn hiệu lực thì chặn gửi và báo Cán bộ lưu trữ | Ngày 6 | [ ] |
+| 11 | Chương 2 – 5.2 chức năng 5, 5.3 chức năng 3 (Duyệt lưu trữ) | Ghi rõ: ai duyệt được xét **tại thời điểm duyệt** – người tạo đang là Trưởng phòng thì Cán bộ lưu trữ duyệt, còn lại Trưởng phòng của phòng duyệt; người duyệt khác người tạo | Ngày 6 | [ ] |
+| 12 | Chương 2 – 5.1 chức năng 11 (Tra cứu, BM07) | Ghi rõ: từ khóa tìm kiểu "chứa chuỗi" trên mã và tiêu đề; 20 dòng/trang; sắp xếp theo ngày tạo, ngày hết hạn, mã | Ngày 6 | [ ] |
+| 13 | Chương 2 – 5.2 chức năng 8 (Đánh dấu hết hiệu lực, BM11) | Thêm: nhãn không tính theo sự kiện thì ngày kết thúc sự kiện là tùy chọn, ngày hết hạn giữ nguyên; nội dung sự kiện đã khai báo thì giữ nguyên | Ngày 6 | [ ] |
 
 ---
 
@@ -167,3 +171,4 @@ Những chỗ code đã khác hoặc chi tiết hơn báo cáo; nhóm sửa báo
 | 26/11/2026 | Sửa CSDL: `trg_lvdt_no_delete` chỉ cho xóa dòng `label_version_document_types` khi phiên bản ở Nháp; cấp quyền DELETE riêng cho bảng này | Báo cáo cho sửa danh sách loại tài liệu khi đề xuất ở Nháp (5.3 CN6, BM02 phần C); script cũ chặn xóa tuyệt đối nên Nháp bị kẹt. Từ khi gửi duyệt vẫn khóa như cũ |
 | 26/11/2026 | Thêm mục 7 "Việc cần cập nhật lại trong báo cáo" | Nhóm sẽ sửa báo cáo sau; ghi lại để không quên |
 | 26/11/2026 | Xong ngày 5. Đuôi file không khớp nội dung thì từ chối; README cảnh báo sao lưu khóa chủ; `MASTER_KEY_BASE64` bắt buộc khi khởi động; bản mã gắn AAD = tên lưu trữ (chống tráo file); nhật ký hồ sơ không ghi tiêu đề/mô tả (có thể chứa dữ liệu cá nhân, mà nhật ký không sửa được); viết lại `.env.example` đủ biến | Nhóm chốt; bảo vệ dữ liệu cá nhân theo yêu cầu 21 (Luật BVDLCN 2025) |
+| 26/11/2026 | Xong ngày 6. Giữ phương án B: hồ sơ do Trưởng phòng tạo do Cán bộ lưu trữ duyệt (đúng 5.3 CN3); vai trò người duyệt xét tại thời điểm duyệt; phòng chưa có Trưởng phòng vẫn gửi được và báo Quản trị hệ thống; tra cứu dùng LIKE (thoát `%`, `_`) trên mã và tiêu đề | Nhóm chốt |

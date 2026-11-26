@@ -272,3 +272,35 @@ POST {{base}}/records/HS-KT-2026-000001/cancel
 Content-Type: application/json
 
 { "reason": "Tạo nhầm loại tài liệu", "confirm": true }
+
+### ---------- Ngày 6: gửi / duyệt lưu trữ, tra cứu, hết hiệu lực ----------
+
+### Tra cứu (BM07): q tìm "chứa chuỗi" trên mã và tiêu đề; status nhiều giá trị cách nhau dấu phẩy; 20 dòng/trang
+GET {{base}}/records?q=hóa đơn&status=ARCHIVED,EXPIRED&expiryDateFrom=2036-01-01&expiryDateTo=2036-12-31&sortBy=expiryDate&sortDir=asc&page=1
+
+### Hồ sơ của tôi
+GET {{base}}/records?mine=true
+
+### Gửi yêu cầu lưu trữ (người tạo; cần ít nhất 1 file)
+POST {{base}}/records/HS-KT-2026-000001/submit
+
+### Rút yêu cầu lưu trữ
+POST {{base}}/records/HS-KT-2026-000001/withdraw
+
+### Hàng chờ duyệt (Trưởng phòng: hồ sơ phòng mình; Cán bộ lưu trữ: hồ sơ do Trưởng phòng tạo)
+GET {{base}}/records/approvals
+
+### Duyệt lưu trữ: gắn nhãn, tính hạn chính thức
+POST {{base}}/records/HS-KT-2026-000001/approve
+
+### Từ chối lưu trữ (lý do 10–500 ký tự)
+POST {{base}}/records/HS-KT-2026-000001/reject
+Content-Type: application/json
+
+{ "reason": "Thiếu phụ lục hợp đồng số 2" }
+
+### Đánh dấu hết hiệu lực (BM11) – nhãn theo sự kiện bắt buộc eventEndDate
+POST {{base}}/records/HS-KT-2026-000001/mark-ended
+Content-Type: application/json
+
+{ "eventEndDate": "2026-11-20", "eventNote": "Thanh lý hợp đồng" }
