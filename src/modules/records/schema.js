@@ -38,3 +38,42 @@ export const contentQuery = z.object({
   version: z.coerce.number().int().min(1).optional(),
   download: z.enum(['0', '1']).default('1'),
 });
+
+const STATUSES = ['IN_USE', 'PENDING_ARCHIVE', 'ARCHIVED', 'EXPIRED', 'PENDING_DISPOSAL', 'DISPOSED', 'CANCELLED'];
+const list = (v) => (v === undefined ? undefined : (Array.isArray(v) ? v : String(v).split(',')).map((x) => x.trim()).filter(Boolean));
+
+// Từ chối yêu cầu lưu trữ: lý do 10–500 ký tự (5.2 CN7)
+export const rejectRecordSchema = z.strictObject({
+  reason: z.string().trim().min(10, 'Lý do từ chối từ 10 đến 500 ký tự').max(500),
+});
+
+// BM11 - Đánh dấu hết hiệu lực
+export const markEndedSchema = z.strictObject({
+  eventEndDate: isoDate.nullish(),
+  eventNote: z.string().trim().min(1).max(255).nullish(),
+});
+
+// BM07 - Phiếu tra cứu hồ sơ; khoảng ngày "từ" không lớn hơn "đến"
+export const searchQuery = z.object({
+  q: z.string().trim().max(100).optional(),
+  groupCode: z.string().trim().toUpperCase().max(20).optional(),
+  documentTypeCode: typeCode.optional(),
+  status: z.preprocess(list, z.array(z.enum(STATUSES)).optional()),
+  validity: z.enum(['VALID', 'ENDED']).optional(),
+  onHold: z.enum(['true', 'false']).transform((v) => v === 'true').optional(),
+  documentDateFrom: isoDate.optional(),
+  documentDateTo: isoDate.optional(),
+  expiryDateFrom: isoDate.optional(),
+  expiryDateTo: isoDate.optional(),
+  mine: z.enum(['true', 'false']).transform((v) => v === 'true').default(false),
+  sortBy: z.enum(['createdAt', 'expiryDate', 'code']).default('createdAt'),
+  sortDir: z.enum(['asc', 'desc']).default('desc'),
+  page: z.coerce.number().int().min(1).default(1),
+}).superRefine((v, ctx) => {
+  if (v.documentDateFrom && v.documentDateTo && v.documentDateFrom > v.documentDateTo) {
+    ctx.addIssue({ code: 'custom', path: ['documentDateFrom'], message: 'Ngày tài liệu "từ" không được lớn hơn "đến"' });
+  }
+  if (v.expiryDateFrom && v.expiryDateTo && v.expiryDateFrom > v.expiryDateTo) {
+    ctx.addIssue({ code: 'custom', path: ['expiryDateFrom'], message: 'Ngày hết hạn "từ" không được lớn hơn "đến"' });
+  }
+});

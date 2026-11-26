@@ -15,6 +15,7 @@ import { computeExpiry } from './retention.js';
 import * as repo from './repo.js';
 
 const FILE_AREA = 'files';
+const PAGE_SIZE = 20;
 const sameId = (a, b) => String(a) === String(b);
 const parseJson = (v) => (typeof v === 'string' ? JSON.parse(v) : v);
 
@@ -109,7 +110,7 @@ export async function createRecord(actor, user, body) {
     await audit({ action: 'RECORD_CREATE', objectType: 'RECORD', objectCode: code,
       details: { documentType: t.code, documentDate: body.documentDate, eventEndDate: body.eventEndDate ?? null } });
     return code;
-  }).then((code) => loadDetail(pool, code));
+  }).then((code) => loadRecordDetail(pool, code));
 }
 
 // Cập nhật hồ sơ Đang sử dụng (chỉ người tạo); nhật ký ghi trước/sau, tiêu đề và mô tả chỉ ghi có đổi hay không
@@ -137,7 +138,7 @@ export async function updateRecord(actor, user, scope, code, changes) {
       titleChanged: next.title !== r.title, descriptionChanged: (next.description ?? null) !== (r.description ?? null),
     } });
   });
-  return loadDetail(pool, code);
+  return loadRecordDetail(pool, code);
 }
 
 // Hủy bỏ hồ sơ tạo nhầm (BM06): xóa khóa dữ liệu mọi phiên bản, chuyển Đã hủy bỏ, rồi xóa bản mã khỏi kho
@@ -152,7 +153,7 @@ export async function cancelRecord(actor, user, scope, code, { reason }) {
     return keys;
   });
   await purgeBlobs(destroyed);
-  return loadDetail(pool, code);
+  return loadRecordDetail(pool, code);
 }
 
 // Xóa bản mã đã mất khóa khỏi kho và đánh dấu is_purged; lỗi thì để lần dọn sau
@@ -174,11 +175,11 @@ export async function getRecord(actor, user, scope, code) {
   const r = await repo.findRecord(pool, code);
   if (!r || !inScope(scope, user, r)) throw AppError.notFound('Không tìm thấy hồ sơ');
   await withTx(actor, ({ audit }) => audit({ action: 'RECORD_VIEW', objectType: 'RECORD', objectCode: code }));
-  return loadDetail(pool, code);
+  return loadRecordDetail(pool, code);
 }
 
 // Gộp dữ liệu chi tiết hồ sơ: khai báo, nhãn, hạn lưu trữ, file và phiên bản, lịch sử xử lý
-async function loadDetail(conn, code) {
+export async function loadRecordDetail(conn, code) {
   const d = await repo.getRecordDetail(conn, code);
   const ended = ['DISPOSED', 'CANCELLED'].includes(d.status);
   const rule = labelRule(d, 'lv_');
@@ -284,7 +285,7 @@ export async function uploadFile(actor, user, scope, code, upload, { fileId } = 
     await deleteBlob(FILE_AREA, storageName).catch(() => {});
     throw err;
   }
-  return loadDetail(pool, code);
+  return loadRecordDetail(pool, code);
 }
 
 // Gỡ file khỏi danh sách đang dùng (phiên bản vẫn giữ trong lịch sử)
@@ -298,7 +299,7 @@ export async function removeFile(actor, user, scope, code, fileId) {
     await repo.deactivateFile(conn, fileId);
     await audit({ action: 'FILE_REMOVE', objectType: 'RECORD', objectCode: code, details: { fileId: String(fileId), name: f.original_name } });
   });
-  return loadDetail(pool, code);
+  return loadRecordDetail(pool, code);
 }
 
 // Xem / tải file: giải mã, kiểm tra thẻ GCM và SHA-256; sai thì từ chối, ghi nhật ký, cảnh báo Quản trị và Giám đốc
@@ -333,4 +334,28 @@ export async function getFileContent(actor, user, scope, code, fileId, { version
   await withTx(actor, ({ audit }) => audit({ action: asDownload ? 'FILE_DOWNLOAD' : 'FILE_VIEW', objectType: 'RECORD', objectCode: code,
     details: { fileId: String(fileId), versionNo: v.version_no } }));
   return { buffer: plain, mime: fmt.mime, fileName: f.original_name, versionNo: v.version_no, asDownload };
+}
+
+// ---------- Tra cứu (5.1 CN11, BM07) ----------
+
+// Tra cứu hồ sơ trong phạm vi được xem: Nhân viên/Trưởng phòng theo phòng, Cán bộ lưu trữ/Giám đốc toàn bộ; 20 dòng mỗi trang
+export async function searchRecords(user, scope, q) {
+  const scopeSql = scope === 'ALL' ? '1 = 1' : 'r.department_id = ?';
+  const scopeParams = scope === 'ALL' ? [] : [user.departmentId];
+  const { total, rows } = await repo.searchRecords(pool, {
+    scopeSql, scopeParams, page: q.page, pageSize: PAGE_SIZE, sort: { by: q.sortBy, dir: q.sortDir },
+    filters: { ...q, mineUserId: q.mine ? user.id : null },
+  });
+  return {
+    page: q.page, pageSize: PAGE_SIZE, total,
+    items: rows.map((r) => ({
+      code: r.code, title: r.title, status: r.status, validity: r.validity, isOnHold: Boolean(Number(r.is_on_hold)),
+      documentDate: r.document_date, createdAt: r.created_at,
+      expiry: !r.label_version_id ? null : r.retention_type === 'PERMANENT' ? { kind: 'PERMANENT' }
+        : r.expiry_date ? { kind: 'DATE', expiryDate: r.expiry_date } : { kind: 'UNDETERMINED' },
+      documentType: { code: r.type_code, name: r.type_name }, group: { code: r.group_code, name: r.group_name },
+      department: r.department_code, createdBy: r.created_by_email,
+      label: r.label_code ? { code: r.label_code, versionNo: r.label_version_no } : null,
+    })),
+  };
 }
