@@ -1,4 +1,4 @@
-# API Auth, Admin, Catalog, Labels – dùng với REST Client (VS Code) hoặc chép sang Postman.
+# API Auth, Admin, Catalog, Labels, Records – dùng với REST Client (VS Code) hoặc chép sang Postman.
 # Cookie rr_session được trình duyệt/REST Client tự lưu sau khi đăng nhập.
 # Frontend React: fetch(..., { credentials: 'include' }) hoặc axios withCredentials: true.
 
@@ -215,3 +215,60 @@ POST {{base}}/labels/proposals/1/reject
 Content-Type: application/json
 
 { "comment": "Căn cứ pháp lý chưa đúng điều khoản" }
+
+# ==================== RECORDS (Nhân viên, Trưởng phòng tạo; xem theo phạm vi) ====================
+
+### Xem trước hạn lưu trữ dự kiến khi điền phiếu (BM01 trường 10)
+GET {{base}}/records/expiry-preview?documentTypeCode=HD-GTGT&documentDate=2026-06-15
+
+### Tạo hồ sơ (BM01) – 201: chi tiết hồ sơ, mã HS-<PB>-<Năm>-<6 số>
+POST {{base}}/records
+Content-Type: application/json
+
+{ "title": "Hóa đơn GTGT số 0012345", "documentTypeCode": "HD-GTGT", "documentDate": "2026-06-15", "description": "Hóa đơn mua văn phòng phẩm" }
+
+### Chi tiết hồ sơ: nhãn, hạn lưu trữ (expiry.official=false là dự kiến), file + phiên bản, lịch sử
+GET {{base}}/records/HS-KT-2026-000001
+
+### Sửa hồ sơ (chỉ người tạo, khi Đang sử dụng)
+PATCH {{base}}/records/HS-KT-2026-000001
+Content-Type: application/json
+
+{ "title": "Hóa đơn GTGT số 0012346", "documentDate": "2026-06-16" }
+
+### Tải file lên (multipart, trường "file"): PDF, DOCX, XLSX, JPG, PNG; đuôi phải khớp nội dung
+POST {{base}}/records/HS-KT-2026-000001/files
+Content-Type: multipart/form-data; boundary=----b
+
+------b
+Content-Disposition: form-data; name="file"; filename="hoa-don.pdf"
+Content-Type: application/pdf
+
+< ./hoa-don.pdf
+------b--
+
+### Thay file: tạo phiên bản mới cho file 1
+POST {{base}}/records/HS-KT-2026-000001/files/1/versions
+Content-Type: multipart/form-data; boundary=----b
+
+------b
+Content-Disposition: form-data; name="file"; filename="hoa-don-v2.pdf"
+Content-Type: application/pdf
+
+< ./hoa-don-v2.pdf
+------b--
+
+### Tải file về (phiên bản mới nhất). 409 FILE_INTEGRITY_FAILED: file bị sửa trong kho; 410: hồ sơ đã hủy
+GET {{base}}/records/HS-KT-2026-000001/files/1/content
+
+### Xem trực tiếp phiên bản 1 (PDF, ảnh) – download=0
+GET {{base}}/records/HS-KT-2026-000001/files/1/content?version=1&download=0
+
+### Gỡ file khỏi danh sách đang dùng (vẫn giữ lịch sử)
+POST {{base}}/records/HS-KT-2026-000001/files/1/remove
+
+### Hủy bỏ hồ sơ tạo nhầm (BM06) – không hoàn tác được
+POST {{base}}/records/HS-KT-2026-000001/cancel
+Content-Type: application/json
+
+{ "reason": "Tạo nhầm loại tài liệu", "confirm": true }

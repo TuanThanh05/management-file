@@ -6,3 +6,4 @@ storage/*
 !storage/.gitkeep
 coverage/
 *.log
+storage-test/
